@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>הדמויות של דונר</title>
+<style>
+  :root{
+    --bg:#0f0e13;
+    --panel:#191720;
+    --panel-2:#211e2b;
+    --ink:#ece8f5;
+    --ink-dim:#9b94ad;
+    --line:#2e2a3a;
+    --accent:#9a8fd6;
+    --accent-soft:#2b2540;
+    --talk:#7aa2c8;
+    --collab:#84c89a;
+    --radius:16px;
+    --font: "Heebo", "Assistant", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @font-face{ font-family:"Frank Ruhl Libre"; src:url("frankruhl.woff2") format("woff2"); font-weight:400 500; font-display:swap; }
+
+  /* light theme (research-backed: dark ink on warm light bg, high contrast) */
+  html.light{
+    --bg:#f4f0e7; --panel:#ffffff; --panel-2:#f7f2e9; --ink:#2a2530; --ink-dim:#6f6979;
+    --line:#e4ddcf; --accent:#6a5acd; --accent-soft:#ece8fb;
+  }
+  html.light body{ background:radial-gradient(1200px 700px at 80% -10%, #efe8da 0%, var(--bg) 55%); }
+  html.light header{ background:rgba(244,240,231,.75); }
+  html.light .entry .etext{color:#33303a}
+  html.light .essence-box{color:#3a3540}
+  html.light .cp-essence{color:#3a3540}
+  html.light .map-wrap{background:radial-gradient(900px 500px at 50% 40%,#efe8da 0%,var(--bg) 70%)}
+  html.light .avatar,html.light .dot,html.light .btn,html.light .chip.sel,html.light .mchip.sel,html.light .wtchip.sel{color:#fff}
+  html.light .ptoggle.on .knob::after{background:#fff}
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 700px at 80% -10%, #1c1726 0%, var(--bg) 55%);
+    color:var(--ink);
+    font-family:var(--font);
+    line-height:1.6;
+    min-height:100vh;
+  }
+  a{color:inherit}
+  button{font-family:inherit}
+
+  /* top bar */
+  header{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(10px);
+    background:rgba(15,14,19,.72);
+    border-bottom:1px solid var(--line);
+  }
+  .bar{
+    max-width:1040px;margin:0 auto;padding:14px 22px;
+    display:flex;align-items:center;gap:18px;
+  }
+  .brand{display:flex;flex-direction:column;cursor:pointer;user-select:none}
+  .brand b{font-size:19px;letter-spacing:.3px}
+  .brand small{color:var(--ink-dim);font-size:11.5px;letter-spacing:2px;text-transform:uppercase}
+  .nav{display:flex;gap:6px;margin-inline-start:auto}
+  .nav button{
+    background:transparent;border:1px solid transparent;color:var(--ink-dim);
+    padding:8px 14px;border-radius:10px;cursor:pointer;font-size:14px;transition:.15s;
+  }
+  .nav button:hover{color:var(--ink)}
+  .nav button.active{color:var(--ink);background:var(--panel);border-color:var(--line)}
+  .write-cta{flex:none}
+  .story-card .glyph{color:var(--talk)}
+  .writer-dest-row{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .writer-dest-row .dest-label{color:var(--ink-dim);font-size:13px}
+  #writer-dest{
+    background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:9px;
+    padding:7px 12px;font-family:inherit;font-size:13.5px;outline:none;cursor:pointer;
+  }
+  #writer-dest option{background:var(--panel-2)}
+
+  .who{
+    display:flex;align-items:center;gap:8px;background:var(--panel);
+    border:1px solid var(--line);border-radius:30px;padding:4px 4px 4px 12px;
+  }
+  .who select{
+    background:transparent;border:0;color:var(--ink);font-family:inherit;font-size:13.5px;
+    padding:4px;outline:none;cursor:pointer;
+  }
+  .who select option{background:var(--panel-2)}
+  .avatar{
+    width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    font-size:13px;font-weight:700;color:#1a1622;background:var(--accent);
+  }
+
+  main{max-width:1040px;margin:0 auto;padding:30px 22px 90px}
+
+  .lead{margin:6px 0 26px}
+  .lead h1{font-size:27px;margin:0 0 6px;font-weight:800;letter-spacing:.2px}
+  .lead p{color:var(--ink-dim);margin:0;max-width:62ch}
+
+  /* grid of characters */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+  .card{
+    background:linear-gradient(180deg,var(--panel) 0%,var(--panel-2) 100%);
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;cursor:pointer;transition:.18s;position:relative;overflow:hidden;
+  }
+  .card:hover{border-color:#4a4360;transform:translateY(-2px)}
+  .card{text-align:center;display:flex;flex-direction:column;align-items:center}
+  .card .glyph{
+    width:54px;height:54px;border-radius:15px;display:grid;place-items:center;
+    font-size:25px;background:var(--accent-soft);border:1px solid #3d3658;margin:0 auto 14px;
+  }
+  .card h3{margin:0 0 8px;font-size:18px}
+  .card .essence{color:var(--ink-dim);font-size:14px;margin:0 0 16px;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .card .meta{display:flex;align-items:center;justify-content:center;gap:10px;font-size:12px;color:var(--ink-dim);margin-top:auto}
+  .card .owner{display:flex;align-items:center;gap:7px}
+  .dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#1a1622}
+
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+  .card .tags{justify-content:center}
+  .tag{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--ink-dim)}
+  .tag.talk{color:var(--talk);border-color:#33455a}
+  .tag.collab{color:var(--collab);border-color:#2f4d3a}
+  .tag.tribe{color:var(--accent);border-color:#3d3658;background:var(--accent-soft);cursor:pointer}
+  .tag.tribe:hover{border-color:var(--accent)}
+  .tag.private{color:var(--ink-dim);border-color:var(--line);background:var(--bg)}
+
+  /* tribe filter bar */
+  .tribebar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+  .chip{
+    background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+    padding:8px 14px;border-radius:24px;cursor:pointer;font-size:13.5px;font-family:inherit;transition:.14s;
+  }
+  .chip:hover{color:var(--ink);border-color:#4a4360}
+  .chip.sel{background:var(--accent);color:#1a1622;border-color:var(--accent);font-weight:700}
+  .chip i{opacity:.6;font-style:normal;font-size:12px}
+  .chip.sel i{opacity:.8}
+
+  .empty{
+    border:1px dashed var(--line);border-radius:var(--radius);padding:40px;text-align:center;
+    color:var(--ink-dim);grid-column:1/-1;
+  }
+
+  /* buttons */
+  .btn{
+    background:var(--accent);color:#1a1622;border:0;border-radius:11px;
+    padding:11px 18px;font-size:14.5px;font-weight:700;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
+  .btn.ghost:hover{border-color:#4a4360}
+  .btn.sm{padding:8px 13px;font-size:13px}
+  .btn.danger{background:transparent;color:#cd7d7d;border:1px solid #5a3030;font-weight:600}
+  .btn.danger:hover{background:#cd5c5c;color:#fff;border-color:#cd5c5c;filter:none}
+
+  /* detail view */
+  .back{background:transparent;border:0;color:var(--ink-dim);cursor:pointer;font-size:14px;padding:0;margin-bottom:18px}
+  .back:hover{color:var(--ink)}
+  .detail-head{display:flex;gap:18px;align-items:flex-start;margin-bottom:8px}
+  .detail-head .glyph{width:64px;height:64px;font-size:30px;border-radius:18px;flex:none}
+  .detail-head h1{margin:0 0 4px;font-size:26px}
+  .detail-head .by{color:var(--ink-dim);font-size:14px}
+  .essence-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;margin:18px 0 26px;font-size:16px;color:#d8d2e6;
+  }
+  .section-title{display:flex;align-items:center;gap:10px;margin:30px 0 14px}
+  .section-title h2{font-size:17px;margin:0;font-weight:700}
+  .section-title .count{color:var(--ink-dim);font-size:13px}
+  .section-title .line{flex:1;height:1px;background:var(--line)}
+
+  .entry{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:16px 18px;margin-bottom:12px;
+  }
+  .entry .ehead{display:flex;align-items:center;gap:9px;margin-bottom:8px;font-size:13px;color:var(--ink-dim)}
+  .entry .ehead b{color:var(--ink);font-weight:600}
+  .entry .etitle{font-size:18px;font-weight:700;color:var(--ink);margin:2px 0 8px}
+  .entry .etext{white-space:pre-wrap;font-size:15.5px;color:#e3def0}
+
+  /* wiki-style links: characters one style, stories another */
+  .wlink{cursor:pointer;text-decoration:none;border-bottom:1px solid transparent;transition:.12s}
+  .wlink.char{color:#b9a8ff;border-bottom-color:rgba(185,168,255,.4);font-weight:600}
+  .wlink.char::before{content:"◈ ";font-size:.85em;opacity:.8}
+  .wlink.char:hover{border-bottom-color:#b9a8ff}
+  .wlink.story{color:#7fd1c4;border-bottom:1px dashed rgba(127,209,196,.55)}
+  .wlink.story::before{content:"◆ ";font-size:.8em;opacity:.8}
+  .wlink.story:hover{border-bottom-style:solid}
+  .wlink.missing{color:var(--ink-dim);border-bottom:1px dotted var(--ink-dim);cursor:help}
+  .wlink.mention{color:#e0a3c8;border-bottom:1px solid rgba(224,163,200,.35);font-weight:600}
+  .wlink.mention:hover{border-bottom-color:#e0a3c8}
+
+  /* character preview popup */
+  .char-pop{
+    display:none;position:fixed;z-index:300;width:min(330px,88vw);
+    background:var(--panel);border:1px solid #4a4360;border-radius:16px;padding:16px;
+    box-shadow:0 16px 44px rgba(0,0,0,.55);
+  }
+  .cp-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .cp-glyph{
+    width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;
+    font-size:21px;background:var(--accent-soft);border:1px solid #3d3658;
+  }
+  .cp-name{font-size:17px;font-weight:700}
+  .cp-by{color:var(--ink-dim);font-size:12.5px}
+  .cp-x{background:transparent;border:0;color:var(--ink-dim);cursor:pointer;font-size:15px;align-self:flex-start}
+  .cp-x:hover{color:var(--ink)}
+  .cp-essence{color:#d2cce0;font-size:14px;line-height:1.6;margin-bottom:12px}
+
+  /* backlinks: stories that mention this character */
+  .backlinks{display:flex;flex-direction:column;gap:8px}
+  .backlink{
+    display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:11px 14px;cursor:pointer;font-size:14.5px;color:var(--ink);transition:.13s;
+  }
+  .backlink:hover{border-color:#4a4360}
+  .backlink .bl-g{font-size:16px;opacity:.85}
+  .backlink .bl-by{color:var(--ink-dim);font-size:12.5px;margin-inline-start:auto}
+
+  /* @ mention autocomplete popup */
+  .mention-pop{
+    display:none;position:absolute;left:50%;bottom:78px;transform:translateX(-50%);
+    width:min(420px,90vw);background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
+    padding:6px;box-shadow:0 12px 34px rgba(0,0,0,.45);z-index:5;
+  }
+  .mention-pop.open{display:block}
+  .mrow{
+    display:flex;align-items:center;gap:9px;width:100%;background:transparent;border:0;color:var(--ink);
+    font-family:inherit;font-size:14px;padding:9px 11px;border-radius:8px;cursor:pointer;text-align:start;
+  }
+  .mrow:hover,.mrow.first{background:var(--accent-soft)}
+  .mrow .mg{font-size:16px}
+  .mrow .mby{color:var(--ink-dim);font-size:12px;margin-inline-start:auto}
+  .story-block.flash .entry{border-color:var(--accent);box-shadow:0 0 0 2px rgba(154,143,214,.35);transition:box-shadow .4s,border-color .4s}
+
+  #writer-title{
+    width:100%;background:transparent;border:0;border-bottom:1px solid var(--line);
+    color:var(--ink);font-family:"Frank Ruhl Libre",Georgia,serif;font-size:25px;font-weight:700;
+    padding:0 0 12px;margin-bottom:20px;outline:none;border-radius:0;
+  }
+  .writer.serif #writer-title{font-family:"Frank Ruhl Libre",Georgia,serif}
+  #writer-title::placeholder{color:var(--ink-dim);opacity:.5;font-weight:400;font-size:18px}
+  #writer-title:focus{border-bottom-color:var(--accent)}
+  #writer-preview{
+    width:100%;background:transparent;border:0;border-bottom:1px dashed var(--line);
+    color:var(--ink-dim);font-family:inherit;font-size:14px;padding:0 0 10px;margin-bottom:18px;
+    outline:none;border-radius:0;
+  }
+  #writer-preview:focus{border-bottom-color:var(--accent);color:var(--ink)}
+  #writer-preview::placeholder{color:var(--ink-dim);opacity:.5}
+  .entry.guest{border-inline-start:3px solid var(--collab)}
+
+  .entry.editable{cursor:pointer;transition:.15s}
+  .entry.editable:hover{border-color:#4a4360}
+  .writecta{display:flex;align-items:center;gap:14px;margin-top:6px}
+  .convo .entry{background:var(--panel-2)}
+  .convo .entry.mine{border-inline-start:3px solid var(--talk)}
+
+  .composer{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:6px;
+  }
+  textarea,input[type=text]{
+    width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;
+    color:var(--ink);font-family:inherit;font-size:15px;padding:12px;resize:vertical;outline:none;
+  }
+  textarea:focus,input:focus{border-color:var(--accent)}
+  .composer .row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px}
+  .hint{color:var(--ink-dim);font-size:12.5px}
+  .locked{
+    border:1px dashed var(--line);border-radius:14px;padding:18px;text-align:center;
+    color:var(--ink-dim);font-size:14px;
+  }
+
+  /* modal */
+  .scrim{
+    position:fixed;inset:0;background:rgba(8,7,11,.7);backdrop-filter:blur(4px);
+    z-index:100;display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .scrim.open{display:flex}
+  .modal{
+    background:var(--panel);border:1px solid var(--line);border-radius:20px;
+    width:100%;max-width:560px;padding:26px;max-height:90vh;overflow:auto;
+  }
+  .modal h2{margin:0 0 4px;font-size:21px}
+  .modal .sub{color:var(--ink-dim);font-size:13.5px;margin:0 0 20px}
+  .field{margin-bottom:18px}
+  .field label{display:block;font-size:13.5px;margin-bottom:7px;color:var(--ink-dim)}
+  .glyphpick{display:flex;gap:8px;flex-wrap:wrap}
+  .glyphpick button{
+    width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--bg);
+    font-size:20px;cursor:pointer;transition:.12s;
+  }
+  .glyphpick button.sel{border-color:var(--accent);background:var(--accent-soft)}
+  #tribepick button{width:auto;height:auto;padding:7px 13px;border-radius:20px;font-size:13px;color:var(--ink-dim)}
+  #tribepick button.sel{color:var(--ink)}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button{
+    flex:1;min-width:90px;background:var(--bg);border:1px solid var(--line);color:var(--ink-dim);
+    padding:10px;border-radius:10px;cursor:pointer;font-size:13px;font-family:inherit;transition:.12s;
+  }
+  .seg button.sel{border-color:var(--accent);color:var(--ink);background:var(--accent-soft)}
+  .modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}
+
+  /* tribe layer */
+  .tribe-card{text-align:center}
+  .tribe-card .glyph{margin:0 auto 14px;border:1px solid var(--line)}
+  .tribe-card .meta{justify-content:center}
+  .tribe-head{display:flex;align-items:center;gap:18px;margin-bottom:10px}
+  .tribe-gem{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;font-size:30px;border:1px solid var(--line);flex:none}
+  .tribe-head h1{margin:0;font-size:26px}
+  .tribe-head p{margin:3px 0 0;color:var(--ink-dim);font-size:14px}
+  .writer-tribes-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px}
+  .writer-tribes-row .dest-label{padding-top:6px}
+  .wtribes{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+  .wtchip{background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+    padding:5px 11px;border-radius:18px;cursor:pointer;font-size:12.5px;font-family:inherit;transition:.12s}
+  .wtchip:hover{color:var(--ink);border-color:#4a4360}
+  .wtchip.sel{background:var(--accent);color:#1a1622;border-color:var(--accent);font-weight:700}
+
+  /* connection map */
+  .map-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .legitem{display:flex;align-items:center;gap:6px;color:var(--ink-dim);font-size:13px;cursor:pointer}
+  .legitem input{accent-color:var(--accent)}
+  .dot-leg{width:11px;height:11px;border-radius:50%}
+  .line-leg{width:16px;height:0;border-top:1.5px dashed #e0a3c8}
+  .map-search{
+    background:var(--panel);border:1px solid var(--line);border-radius:9px;color:var(--ink);
+    font-family:inherit;font-size:13px;padding:7px 11px;outline:none;width:160px;
+  }
+  .map-search:focus{border-color:var(--accent)}
+  .map-wrap{
+    position:relative;height:72vh;background:radial-gradient(900px 500px at 50% 40%,#16131f 0%,var(--bg) 70%);
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:grab;
+  }
+  .map-wrap:active{cursor:grabbing}
+  #map-svg{display:block}
+  .map-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;
+    color:var(--ink-dim);padding:40px;font-size:15px}
+
+  .profile-head{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+  .backup{display:flex;gap:8px;flex-wrap:wrap}
+  .privacy{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 26px;
+    padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+  .priv-title{color:var(--ink-dim);font-size:13.5px;margin-inline-end:4px}
+  .ptoggle{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);
+    color:var(--ink-dim);padding:7px 13px;border-radius:22px;cursor:pointer;font-family:inherit;font-size:13px;transition:.15s}
+  .ptoggle .knob{width:30px;height:17px;border-radius:10px;background:var(--line);position:relative;transition:.18s}
+  .ptoggle .knob::after{content:"";position:absolute;top:2px;inset-inline-start:2px;width:13px;height:13px;border-radius:50%;background:var(--ink-dim);transition:.18s}
+  .ptoggle.on{color:var(--ink);border-color:var(--accent)}
+  .ptoggle.on .knob{background:var(--accent)}
+  .ptoggle.on .knob::after{inset-inline-start:15px;background:#1a1622}
+  .ent-actions{display:flex;align-items:center;gap:8px;flex:none}
+  .theme-btn{font-size:16px}
+  /* color picker */
+  .cpick{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .csw{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+  .csw.sel{border-color:var(--ink)}
+  .cinp{width:30px;height:26px;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer}
+  .cclear{background:transparent;border:1px solid var(--line);color:var(--ink-dim);border-radius:8px;padding:5px 10px;cursor:pointer;font-family:inherit;font-size:12px}
+  .cclear:hover{color:var(--ink)}
+  .prof-color,.tribe-color,.writer-color-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .prof-color{margin:14px 0 24px}
+  .sub-tag{font-size:12px;font-weight:500;color:var(--accent);border:1px solid var(--accent);border-radius:12px;padding:2px 9px;vertical-align:middle;margin-inline-start:6px}
+  .tribe-color{margin:6px 0 18px}
+  .writer-color-row{margin-bottom:18px}
+  .tribe-priv{display:flex;align-items:center;gap:8px;color:var(--ink-dim);font-size:13px}
+
+  /* media: strip in writer, gallery in stories, covers on cards */
+  .media-strip{display:none;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .mthumb{position:relative;width:96px;height:96px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .mthumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .mdel{position:absolute;top:3px;inset-inline-end:3px;width:20px;height:20px;border-radius:50%;border:0;
+    background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:11px;line-height:1}
+  .gallery{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .gallery img{max-width:100%;max-height:340px;border-radius:12px;border:1px solid var(--line);cursor:zoom-in;display:block}
+  .card .cover{width:100%;height:120px;border-radius:11px;overflow:hidden;margin-bottom:12px;border:1px solid var(--line)}
+  .card .cover img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* ambient hearth — toggle, resize, drag */
+  .hearth{position:fixed;inset-inline-start:24px;bottom:24px;z-index:120;width:300px;
+    display:none;opacity:0;transform:translateY(10px);transition:opacity .4s}
+  .hearth.on{display:block;opacity:1;transform:none}
+  .hearth.dragging{transition:none;cursor:grabbing}
+  .hearth.size-bubble{width:58px}
+  .hearth.size-bubble .hearth-frame{aspect-ratio:1;border-radius:50%}
+  .hearth.size-bubble .hearth-ctrl{top:2px;inset-inline-end:2px;opacity:1}
+  .hearth.size-bubble .hearth-ctrl button{width:20px;height:20px;font-size:10px;border-radius:6px}
+  .hearth.size-bubble .hearth-ctrl button:first-child{display:none}
+  .hearth.size-mini{width:160px}
+  .hearth.size-normal{width:300px}
+  .hearth.size-full{inset:0;width:auto}
+  .hearth.size-full .hearth-frame{height:100%;border-radius:0;border:0}
+  .hearth-frame{position:relative;aspect-ratio:16/10;border-radius:16px;overflow:hidden;cursor:grab;
+    border:1px solid var(--line);background:#140d08;
+    box-shadow:0 14px 38px rgba(0,0,0,.55),0 0 50px rgba(255,138,46,.14)}
+  .hearth.size-full .hearth-frame{aspect-ratio:auto}
+  .hearth-ctrl{position:absolute;top:8px;inset-inline-end:8px;display:flex;gap:6px;opacity:0;transition:.2s}
+  .hearth-frame:hover .hearth-ctrl{opacity:1}
+  .hearth-ctrl button{width:28px;height:28px;border-radius:8px;border:0;background:rgba(0,0,0,.5);
+    color:#fff;cursor:pointer;font-size:14px;line-height:1;backdrop-filter:blur(3px)}
+  .hearth-ctrl button:hover{background:rgba(0,0,0,.75)}
+  .hearth-frame video{width:100%;height:100%;object-fit:cover;display:block}
+  .hearth-glass{position:absolute;inset:0;box-shadow:inset 0 0 30px rgba(0,0,0,.5);pointer-events:none}
+  .hearth-mute{position:absolute;top:8px;inset-inline-end:8px;width:30px;height:30px;border-radius:50%;
+    border:0;background:rgba(0,0,0,.45);color:#fff;cursor:pointer;font-size:14px;pointer-events:auto;backdrop-filter:blur(3px)}
+  .hearth-mute:hover{background:rgba(0,0,0,.7)}
+  .hearth-fallback{display:none;position:absolute;inset:0;
+    background:radial-gradient(120% 90% at 50% 115%, #ff9b3d 0%, #d2521c 22%, #7a2410 45%, #1a0d07 75%)}
+  .hearth.novideo .hearth-fallback{display:block}
+  .hearth.novideo video{display:none}
+  .ember{position:absolute;bottom:-10%;left:50%;width:60%;height:55%;transform:translateX(-50%);
+    background:radial-gradient(circle at 50% 100%, rgba(255,180,80,.95), rgba(255,110,30,.5) 45%, transparent 70%);
+    filter:blur(6px);animation:flick 1.5s ease-in-out infinite}
+  .ember.e2{width:38%;height:70%;animation-duration:1.1s;animation-delay:.3s;opacity:.85}
+  .ember.e3{width:24%;height:85%;animation-duration:.8s;animation-delay:.6s;opacity:.7}
+  @keyframes flick{0%,100%{transform:translateX(-50%) scaleY(1) scaleX(1);opacity:.9}
+    25%{transform:translateX(-53%) scaleY(1.12) scaleX(.95);opacity:1}
+    50%{transform:translateX(-48%) scaleY(.95) scaleX(1.05);opacity:.8}
+    75%{transform:translateX(-51%) scaleY(1.08) scaleX(.97);opacity:.95}}
+
+  .lightbox{display:none;position:fixed;inset:0;z-index:400;background:rgba(8,7,11,.92);
+    align-items:center;justify-content:center;padding:30px;cursor:zoom-out}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:96%;max-height:96%;border-radius:10px}
+
+  /* drawing modal */
+  .draw-modal{max-width:760px}
+  .draw-tools{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+  .swatches,.sizes{display:flex;gap:7px}
+  .sw{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);cursor:pointer}
+  .sw.sel{border-color:#fff}
+  .szb{width:34px;height:30px;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;display:grid;place-items:center}
+  .szb.sel{border-color:var(--accent)}
+  .szb span{background:var(--ink);border-radius:50%;display:block}
+  .canvas-hold{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#f5f1e8}
+  #draw-canvas{width:100%;height:auto;display:block;touch-action:none;cursor:crosshair}
+
+  .mthumb-aud{width:100%;height:100%;display:grid;place-items:center;font-size:28px;background:var(--panel-2)}
+
+  /* recorder */
+  .rec-modal{max-width:420px}
+  .rec-body{display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 0}
+  .rec-btn{width:72px;height:72px;border-radius:50%;border:0;background:var(--accent);color:#1a1622;font-size:26px;cursor:pointer;transition:.15s}
+  .rec-btn.recording{background:#cd5c5c;color:#fff;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(205,92,92,.5)}50%{box-shadow:0 0 0 12px rgba(205,92,92,0)}}
+  .rec-time{font-size:20px;font-variant-numeric:tabular-nums;color:var(--ink-dim)}
+  #rec-preview{width:100%}
+
+  /* attachments panel (char / tribe) */
+  .att-note{color:var(--ink-dim);font-size:13px;margin:-6px 0 14px}
+  .att-grid{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+  .att-item{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+  .att-item img{width:150px;height:150px;object-fit:cover;display:block;cursor:zoom-in}
+  .att-audio{display:flex;align-items:center;gap:8px;padding:12px;font-size:20px}
+  .att-audio audio{height:34px}
+  .att-add{display:flex;gap:8px;flex-wrap:wrap}
+  .profile-head .avatar{width:56px;height:56px;font-size:22px}
+  .profile-head h1{margin:0;font-size:24px}
+  .profile-head p{margin:2px 0 0;color:var(--ink-dim);font-size:14px}
+
+  .float{
+    position:fixed;inset-inline-end:26px;bottom:26px;z-index:40;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);border-radius:30px;padding:14px 22px;
+  }
+  @media(max-width:560px){ .nav button{padding:8px 9px;font-size:13px} .brand small{display:none} }
+
+  /* ---- fullscreen writer ---- */
+  .writer{
+    position:fixed;inset:0;z-index:200;background:var(--bg);
+    display:none;flex-direction:column;
+  }
+  .writer.open{display:flex}
+  .writer-bar{
+    display:flex;align-items:center;gap:12px;padding:18px 28px;
+    font-size:13.5px;color:var(--ink-dim);transition:opacity .45s;
+  }
+  .writer.hidechrome .writer-bar,.writer.hidechrome .writer-foot{opacity:0}
+  .writer.hidechrome .writer-bar:hover,.writer.hidechrome .writer-foot:hover{opacity:1}
+  .writer-bar .wname{display:flex;align-items:center;gap:9px;color:var(--ink);font-size:15px}
+  .writer-bar .wname .g{font-size:18px;opacity:.85}
+  .writer-bar .spacer{margin-inline-start:auto}
+  .writer-bar .stat{min-width:96px;text-align:start}
+  .writer-bar .saved{color:var(--collab)}
+  .wbtn{background:transparent;border:1px solid transparent;color:var(--ink-dim);
+    cursor:pointer;font-size:13.5px;font-family:inherit;padding:6px 10px;border-radius:8px}
+  .wbtn:hover{color:var(--ink)}
+  .writer-x{font-size:19px;line-height:1}
+  .writer-wrap{flex:1;overflow:auto;display:flex;justify-content:center}
+  .writer-area{width:100%;max-width:700px;padding:5vh 26px 34vh}
+  #writer-text{
+    width:100%;min-height:64vh;background:transparent;border:0;outline:none;resize:none;
+    color:var(--ink);font-size:22px;line-height:1.95;font-family:"Frank Ruhl Libre",Georgia,serif;
+    letter-spacing:.1px;padding:0;
+  }
+  #writer-text::placeholder{color:var(--ink-dim);opacity:.55}
+  .writer.serif #writer-text{font-family:"Frank Ruhl Libre",Georgia,"Times New Roman",serif}
+  .writer-foot{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    padding:14px 28px 22px;transition:opacity .45s;
+  }
+  .writer-foot .note{color:var(--ink-dim);font-size:12.5px}
+  /* in-writer fire ambience background */
+  .writer-bg,.writer-bg-fallback,.writer-bg-scrim{position:absolute;inset:0;z-index:0;display:none}
+  .writer-bg{object-fit:cover;width:100%;height:100%}
+  .writer-bg-fallback{background:radial-gradient(120% 80% at 50% 115%,#ff9b3d 0%,#d2521c 22%,#7a2410 45%,#140b06 78%)}
+  .writer-bg-scrim{background:rgba(10,8,6,.6)}
+  .writer.amb .writer-bg,.writer.amb .writer-bg-scrim{display:block}
+  .writer.amb.novideo .writer-bg-fallback{display:block}
+  .writer.amb.novideo .writer-bg{display:none}
+  .writer-bar,.writer-wrap,.writer-foot{position:relative;z-index:1}
+  .writer.amb{ --ink:#f1ebda; --ink-dim:#c9c2b2; }
+  .writer.amb #writer-text,.writer.amb #writer-title{text-shadow:0 1px 14px rgba(0,0,0,.85)}
+  .writer.amb #writer-title{border-bottom-color:rgba(255,255,255,.25)}
+  .amb-range{accent-color:var(--accent);width:90px;vertical-align:middle}
+  .footinner{width:100%;max-width:700px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .modepick{display:flex;gap:6px;flex-wrap:wrap}
+  .mchip{
+    background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+    padding:6px 11px;border-radius:18px;cursor:pointer;font-size:12.5px;font-family:inherit;transition:.13s;
+  }
+  .mchip:hover{color:var(--ink);border-color:#4a4360}
+  .mchip.sel{background:var(--accent);color:#1a1622;border-color:var(--accent);font-weight:700}
+
+  /* dated story block — each story is a separate piece written at its own time */
+  .story-block{margin-bottom:26px}
+  .story-block .entry{margin-bottom:0}
+  .story-block + .story-block{padding-top:4px;border-top:1px dashed var(--line)}
+  .story-block + .story-block .stamp{margin-top:18px}
+  .stamp{display:flex;align-items:baseline;gap:10px;margin:0 4px 8px}
+  .stamp-date{color:var(--ink);font-size:13.5px;font-weight:600;letter-spacing:.2px}
+  .stamp-rel{color:var(--ink-dim);font-size:12px}
+
+  /* per-entry mode badge (status of each story) */
+  .emode{font-size:12px;font-weight:600;padding:3px 9px;border-radius:13px;border:1px solid var(--line);color:var(--ink-dim);white-space:nowrap}
+  .emode.secret{color:var(--ink-dim);background:var(--bg)}
+  .emode.contribute{color:var(--collab);border-color:#2f4d3a}
+  .emode.single{color:var(--talk);border-color:#33455a}
+  .emode.mine{color:var(--accent);border-color:#3d3658}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand" onclick="go('discover')">
+      <b>הדמויות של דונר</b>
+      <small>characters &middot; stories &middot; minds</small>
+    </div>
+    <nav class="nav">
+      <button id="nav-discover" onclick="go('discover')">גילוי</button>
+      <button id="nav-tribes" onclick="go('tribes')">שבטים</button>
+      <button id="nav-map" onclick="go('map')">מפה</button>
+      <button id="nav-profile" onclick="go('profile')">הפרופיל שלי</button>
+    </nav>
+    <button class="btn sm write-cta" onclick="openWriterNew()">✍ כתוב</button>
+    <button class="wbtn theme-btn" id="theme-btn" onclick="toggleTheme()" title="מצב תצוגה">🌙</button>
+    <button class="wbtn theme-btn" id="fire-btn" onclick="toggleFire()" title="אווירת אח">🔥</button>
+    <div class="who">
+      <div class="avatar" id="who-av">?</div>
+      <select id="who-sel" onchange="switchUser(this.value)"></select>
+    </div>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<!-- שער הזדהות (Supabase) -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(10,8,7,.93);backdrop-filter:blur(6px)">
+  <div style="background:#1a1410;color:#f0e9e0;border:1px solid rgba(232,146,74,.3);border-radius:16px;padding:28px 26px;width:340px;max-width:90vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:34px;margin-bottom:6px">🔥</div>
+    <h2 style="margin:0 0 4px;font-size:20px">הדמויות של דונר</h2>
+    <p id="auth-sub" style="margin:0 0 18px;font-size:13px;opacity:.7">הירשם כדי להתחיל לכתוב</p>
+    <input id="auth-email" type="email" placeholder="אימייל" autocomplete="email" style="width:100%;box-sizing:border-box;padding:11px 12px;margin-bottom:9px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:14px;font-family:inherit;direction:ltr;text-align:left">
+    <input id="auth-pass" type="password" placeholder="סיסמה" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:11px 12px;margin-bottom:14px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:14px;font-family:inherit;direction:ltr;text-align:left" onkeydown="if(event.key==='Enter')authSubmit()">
+    <div id="auth-err" style="color:#ff9a8a;font-size:12px;min-height:16px;margin-bottom:10px"></div>
+    <button id="auth-submit" onclick="authSubmit()" style="width:100%;padding:12px;border:none;border-radius:9px;background:linear-gradient(135deg,#e8924a,#c94a20);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">הרשמה</button>
+    <div style="margin-top:12px;font-size:13px;opacity:.8">
+      <span id="auth-toggle-text">כבר יש לך חשבון?</span>
+      <a onclick="authToggleMode()" style="color:#e8924a;cursor:pointer;text-decoration:underline">החלף</a>
+    </div>
+  </div>
+</div>
+
+<button class="btn float" id="fab" onclick="openEditor()" style="display:none">+ דמות חדשה</button>
+
+<!-- editor modal -->
+<div class="scrim" id="scrim">
+  <div class="modal">
+    <h2 id="m-title">דמות חדשה</h2>
+    <p class="sub">יישות שסביבה ודרכה אתה בונה סיפור. אתה מחליט כמה לפתוח אותה לעולם.</p>
+    <div class="field">
+      <label>סמל</label>
+      <div class="glyphpick" id="glyphpick"></div>
+    </div>
+    <div class="field">
+      <label>צבע</label>
+      <div id="char-colorpick"></div>
+    </div>
+    <div class="field">
+      <label>שם הדמות</label>
+      <input type="text" id="f-name" placeholder="לדוגמה: האיש ששכח לפחד" maxlength="60" />
+    </div>
+    <div class="field">
+      <label>המהות (פסקה שמגדירה את הדמות או הנושא)</label>
+      <textarea id="f-essence" rows="4" placeholder="מי זה? מה הזרע של הסיפור? על מה אתה רוצה לחשוב דרכו?"></textarea>
+    </div>
+    <div class="field">
+      <label>תצוגה מקדימה (מה שאחרים רואים לפני שנכנסים)</label>
+      <textarea id="f-preview" rows="2" placeholder="ברירת מחדל: תחילת המהות"></textarea>
+    </div>
+    <div class="field">
+      <label>שבטים (נושאים שהדמות שייכת אליהם)</label>
+      <div class="glyphpick" id="tribepick" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="f-newtribe" placeholder="שבט חדש משלך…" maxlength="20" onkeydown="if(event.key==='Enter'){event.preventDefault();addTribe()}" />
+        <button class="btn ghost sm" type="button" onclick="addTribe()">הוסף</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>נראוּת</label>
+      <div class="seg" id="seg-vis">
+        <button data-v="private">🔒 פרטי (רק אני)</button>
+        <button data-v="public">🌐 ציבורי</button>
+      </div>
+    </div>
+    <div class="field" id="wrap-talk">
+      <label>רמת עניין שלי לפתוח שיחה על זה</label>
+      <div class="seg" id="seg-talk">
+        <button data-v="0">סגור לשיחה</button>
+        <button data-v="1">סקרן</button>
+        <button data-v="2">משתוקק</button>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn danger" id="m-delete" onclick="deleteCharacter()" style="display:none">מחק דמות</button>
+      <span style="flex:1"></span>
+      <button class="btn ghost" onclick="closeEditor()">ביטול</button>
+      <button class="btn" onclick="saveCharacter()">שמירה</button>
+    </div>
+  </div>
+</div>
+
+<!-- fullscreen writer -->
+<div class="writer" id="writer">
+  <video class="writer-bg" id="writer-bg" loop muted playsinline></video>
+  <div class="writer-bg-fallback" id="writer-bg-fallback"></div>
+  <div class="writer-bg-scrim" id="writer-bg-scrim"></div>
+  <div class="writer-bar">
+    <div class="wname"><span class="g" id="writer-glyph">✦</span><span id="writer-name">דמות</span></div>
+    <span class="spacer"></span>
+    <span class="stat" id="writer-stat"></span>
+    <button class="wbtn" onclick="insertLink('char')" title="קישור לדמות אחרת">[[דמות]]</button>
+    <button class="wbtn" onclick="insertLink('story')" title="קישור לסיפור אחר">((סיפור))</button>
+    <button class="wbtn" onclick="document.getElementById('img-input').click()" title="הוסף תמונה">🖼 תמונה</button>
+    <button class="wbtn" onclick="openDraw()" title="ציור או כתב יד">✎ ציור</button>
+    <button class="wbtn" onclick="setSink({kind:'writer'});openRec()" title="הקלטת קול">🎙 הקלטה</button>
+    <input type="file" id="img-input" accept="image/*" style="display:none" onchange="addImage(this)">
+    <button class="wbtn" id="amb-fire" onclick="toggleWriterAmbient()" title="רקע אח">🔥</button>
+    <input type="range" id="amb-intensity" class="amb-range" min="0" max="100" value="42" oninput="setWriterIntensity(this.value)" title="עוצמת אש" style="display:none">
+    <button class="wbtn" id="amb-snd" onclick="toggleFireMute()" title="קול אש" style="display:none">🔊</button>
+    <button class="wbtn writer-x" onclick="closeWriter()" title="יציאה">✕</button>
+  </div>
+  <div class="writer-wrap">
+    <div class="writer-area">
+      <div class="writer-dest-row" id="writer-dest-row">
+        <span class="dest-label">שייך ל:</span>
+        <select id="writer-dest" onchange="onDestChange()"></select>
+      </div>
+      <div class="writer-tribes-row" id="writer-tribes-row">
+        <span class="dest-label">שבטים:</span>
+        <div class="wtribes" id="writer-tribes"></div>
+      </div>
+      <div class="writer-color-row" id="writer-color-row">
+        <span class="dest-label">צבע:</span>
+        <div id="writer-color"></div>
+      </div>
+      <input type="text" id="writer-title" class="writer-title" placeholder="כותרת הסיפור (לא חובה, מאפשרת לקשר אליו)" oninput="onWrite()" />
+      <input type="text" id="writer-preview" class="writer-preview" placeholder="תצוגה מקדימה לקוראים (לא חובה, ברירת מחדל: תחילת הטקסט)" oninput="onWrite()" />
+      <textarea id="writer-text" placeholder="כתוב…  (הקלד @ כדי לתייג דמות)" oninput="onWrite()" onkeyup="checkMention()" onclick="checkMention()" spellcheck="true"></textarea>
+      <div class="media-strip" id="media-strip"></div>
+    </div>
+  </div>
+  <div class="mention-pop" id="mention-pop"></div>
+  <div class="writer-foot" id="writer-foot"></div>
+</div>
+
+<!-- character preview popup -->
+<div class="char-pop" id="char-pop"></div>
+
+<!-- drawing / handwriting canvas -->
+<div class="scrim" id="draw-scrim">
+  <div class="modal draw-modal">
+    <h2>ציור / כתב יד</h2>
+    <p class="sub">צייר או כתוב ביד. כשתסיים, יצורף לסיפור כתמונה.</p>
+    <div class="draw-tools">
+      <div class="swatches" id="draw-swatches"></div>
+      <div class="sizes" id="draw-sizes"></div>
+      <button class="btn ghost sm" onclick="clearDraw()">נקה</button>
+    </div>
+    <div class="canvas-hold"><canvas id="draw-canvas" width="900" height="620"></canvas></div>
+    <div class="actions">
+      <button class="btn ghost" onclick="closeDraw()">ביטול</button>
+      <button class="btn" onclick="saveDraw()">צרף לסיפור</button>
+    </div>
+  </div>
+</div>
+
+<!-- audio recording -->
+<div class="scrim" id="rec-scrim">
+  <div class="modal rec-modal">
+    <h2>הקלטה</h2>
+    <p class="sub">הקלטת קול. תצורף לסיפור / לדמות / לשבט כתוספת.</p>
+    <div class="rec-body">
+      <button class="rec-btn" id="rec-btn" onclick="toggleRec()">●</button>
+      <div class="rec-time" id="rec-time">00:00</div>
+      <audio id="rec-preview" controls style="display:none"></audio>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" onclick="closeRec()">ביטול</button>
+      <button class="btn" id="rec-save" onclick="saveRec()" disabled>צרף</button>
+    </div>
+  </div>
+</div>
+
+<!-- image lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightbox-img" alt=""></div>
+
+<!-- ambient hearth (optional fireplace.mp4 in folder; CSS ember fallback if absent) -->
+<div class="hearth" id="hearth" aria-hidden="true">
+  <div class="hearth-frame">
+    <video id="hearth-video" loop muted playsinline></video>
+    <div class="hearth-fallback"><span class="ember"></span><span class="ember e2"></span><span class="ember e3"></span></div>
+    <div class="hearth-glass"></div>
+    <div class="hearth-ctrl">
+      <button onclick="toggleFireMute()" id="fire-mute" title="קול">🔊</button>
+      <button onclick="fireResize(-1)" title="הקטן">－</button>
+      <button onclick="fireResize(1)" title="הגדל">⤢</button>
+      <button onclick="toggleFire()" title="כבה">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- content lives in a separate file so it can be edited / carried between machines -->
+<script src="content.js"></script>
+<script>
+/* ---------- storage ---------- */
+const DB_KEY = "donner_v4";
+const EMODES = {
+  secret:    {label:"חסוי",        icon:"🔒", hint:"רק אני רואה את הסיפור הזה"},
+  mine:      {label:"רק אני כותב",  icon:"✎",  hint:"אחרים קוראים, אף אחד לא מוסיף"},
+  single:    {label:"טקסט יחיד",    icon:"◆",  hint:"קטע שעומד בפני עצמו"},
+  contribute:{label:"תרומה",        icon:"⤳",  hint:"אחרים יכולים להוסיף לסיפור"}
+};
+const EMODE_ORDER = ["secret","mine","single","contribute"];
+const GLYPHS_SAFE = ["✦","❂","⟁","◬","♆","☉","✧","∞","◈","☾","✺","⟡","◑","❖","⌘","☍","✸","❉","✜","☉"];
+const BASE_TRIBES = ["דיכאון","בדידות","פחד","אהבה","זמן","זיכרון","חלומות","זהות","ילדות","אבסורד","שמחה","אובדן","געגוע","שתיקה"];
+
+function seed(){
+  // prefer external content file (content.js) so content stays separate from the app
+  if(typeof window!=="undefined" && window.DONNER_SEED){
+    return JSON.parse(JSON.stringify(window.DONNER_SEED));
+  }
+  return {
+    currentUser:"u1",
+    users:[
+      {id:"u1",name:"דונר",bio:"בונה דמויות כדי לחשוב דרכן. רוב הזמן שואל יותר משעונה."},
+      {id:"u2",name:"מיכל",bio:"כותבת קטעים קצרים על דברים שאף אחד לא שם לב אליהם."},
+      {id:"u3",name:"עומר",bio:"אספן של רעיונות חצי-אפויים. אוהב להשלים סיפורים של אחרים."}
+    ],
+    chars:[
+      {id:"c1",ownerId:"u1",glyph:"⟁",name:"האיש ששכח לפחד",
+       essence:"בוקר אחד הוא קם והפחד פשוט לא היה שם. לא אומץ, פשוט היעדר. אני רוצה לחשוב דרכו מה הפחד עושה בשבילנו שאנחנו לא שמים לב אליו.",
+       tribes:["פחד","זהות"],vis:"public",talk:2,collab:1,
+       entries:[
+         {id:"e1",authorId:"u1",mode:"contribute",text:"יום ראשון: הוא חצה כביש בלי להסתכל. לא מתוך זלזול. פשוט לא עלה בו שיש סיבה להסתכל.",ts:Date.now()-86400000*3},
+         {id:"e2",authorId:"u3",mode:"single",text:"אולי הפחד לא נעלם אלא עבר דירה. הוא מתחיל לפחד מדברים אחרים לגמרי, דברים שלאנשים אחרים נראים מגוחכים.",ts:Date.now()-86400000*2}
+       ],
+       convo:[
+         {id:"t1",authorId:"u2",text:"מה הופך את זה לדמות ולא לתרגיל מחשבתי? בא לי לדעת איך הוא נראה כשהוא אוכל ארוחת בוקר.",ts:Date.now()-86400000*2},
+         {id:"t2",authorId:"u1",text:"שאלה טובה. אולי הוא אוכל לאט מדי, כי אין דחיפות שמזיזה אותו.",ts:Date.now()-86400000*1}
+       ]},
+      {id:"c2",ownerId:"u2",glyph:"☾",name:"הספרייה של חצות",
+       essence:"ספרייה שנפתחת רק כשכולם ישנים, ומשאילה ספרים שעוד לא נכתבו. כל לילה מישהו אחר מוצא אותה. הנושא שמעניין אותי: מה היינו קוראים אם ידענו שאף אחד לא ישפוט אותנו על זה.",
+       tribes:["חלומות","בדידות"],vis:"public",talk:1,collab:1,
+       entries:[
+         {id:"e3",authorId:"u2",mode:"mine",text:"הספרנית לא מדברת. היא רק מצביעה. הלילה היא הצביעה על ספר בלי כותרת, רק עם המשקל של יד.",ts:Date.now()-86400000*4}
+       ],
+       convo:[]},
+      {id:"c3",ownerId:"u1",glyph:"∞",name:"השיחה שלא נגמרת",
+       essence:"שני אנשים שהתחילו שיחה ב-1997 ומעולם לא סיימו אותה. הם נפגשים, מתפצלים, חוזרים. אני רוצה לבדוק אם נושא יכול להיות יישות בפני עצמו.",
+       tribes:["זמן","געגוע"],vis:"private",talk:0,collab:0,
+       entries:[
+         {id:"e4",authorId:"u1",mode:"secret",text:"המשפט הראשון אבד. אף אחד מהם לא זוכר מי התחיל. וזה בדיוק מה שמחזיק אותם.",ts:Date.now()-86400000*6}
+       ],
+       convo:[]}
+    ]
+  };
+}
+
+let DB = load();
+function load(){
+  let d=null;
+  try{ const r = localStorage.getItem(DB_KEY); if(r) d=JSON.parse(r); }catch(e){}
+  if(!d){ d = seed(); }
+  if(!d.drafts) d.drafts={};
+  if(!d.draftTitles) d.draftTitles={};
+  if(!d.loose) d.loose=[];
+  if(!d.tribeMeta) d.tribeMeta={};
+  localStorage.setItem(DB_KEY, JSON.stringify(d)); return d;
+}
+function save(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+
+/* ---------- helpers ---------- */
+function me(){ return DB.users.find(u=>u.id===DB.currentUser); }
+function user(id){ return DB.users.find(u=>u.id===id) || {name:"?",id:""}; }
+function initials(name){ return name.trim().slice(0,1); }
+const PALETTE=["#9a8fd6","#7aa2c8","#84c89a","#c889b4","#6ac1c8","#cd7d7d","#d39a5a","#b0a06a","#e0a3c8","#8f9ad6"];
+function color(id){ const u=DB.users.find(x=>x.id===id); if(u&&u.color) return u.color;
+  const c=["#9a8fd6","#7aa2c8","#84c89a","#c889b4","#6ac1c8","#9a8fd6"]; let h=0; for(const ch of id) h=(h+ch.charCodeAt(0))%c.length; return c[h]; }
+function glyphStyle(col){ return col?` style="background:${col}22;border-color:${col}66;color:${col}"`:""; }
+function colorRow(current, fn){
+  return `<div class="cpick">
+    ${PALETTE.map(c=>`<button type="button" class="csw ${c===current?'sel':''}" style="background:${c}" onclick="${fn}('${c}')"></button>`).join("")}
+    <input type="color" class="cinp" value="${current||'#9a8fd6'}" oninput="${fn}(this.value)" title="צבע חופשי">
+    <button type="button" class="cclear" onclick="${fn}('')">איפוס</button>
+  </div>`;
+}
+function when(ts){
+  const d=Math.floor((Date.now()-ts)/86400000);
+  if(d<=0) return "היום"; if(d===1) return "אתמול"; if(d<7) return "לפני "+d+" ימים";
+  if(d<30) return "לפני "+Math.floor(d/7)+" שבועות"; return "לפני "+Math.floor(d/30)+" חודשים";
+}
+function esc(s){ return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+const HMONTHS=["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+const HDAYS=["יום ראשון","יום שני","יום שלישי","יום רביעי","יום חמישי","יום שישי","שבת"];
+function fdate(ts){ const d=new Date(ts);
+  return `${HDAYS[d.getDay()]}, ${d.getDate()} ב${HMONTHS[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+/* ---- wiki-style linking ---- */
+function canViewChar(ch){ return ch && (ch.ownerId===DB.currentUser || ch.vis==="public"); }
+function findCharByName(name){
+  const n=name.trim().toLowerCase();
+  return DB.chars.find(c=>c.name.trim().toLowerCase()===n);
+}
+function findStoryByTitle(title){
+  const n=title.trim().toLowerCase();
+  for(const c of DB.chars){
+    const e=c.entries.find(x=>x.title && x.title.trim().toLowerCase()===n);
+    if(e) return {kind:"char", char:c, entry:e};
+  }
+  const s=DB.loose.find(x=>x.title && x.title.trim().toLowerCase()===n);
+  if(s) return {kind:"loose", story:s};
+  return null;
+}
+function linkify(s){
+  let out = esc(s);
+  out = out.replace(/@\[([^\]\[]+)\]/g,(m,name)=>{
+    const raw=name.replace(/&quot;/g,'"').trim();
+    const ch=findCharByName(raw);
+    if(ch && canViewChar(ch)) return `<a class="wlink mention" onclick="event.stopPropagation();openCharPop(event,'${ch.id}')">@${name.trim()}</a>`;
+    return `<span class="wlink missing" title="אין דמות בשם הזה">@${name.trim()}</span>`;
+  });
+  out = out.replace(/\[\[([^\]\[]+)\]\]/g,(m,name)=>{
+    const raw=name.replace(/&quot;/g,'"').trim();
+    const ch=findCharByName(raw);
+    if(ch && canViewChar(ch)) return `<a class="wlink char" onclick="event.stopPropagation();openCharPop(event,'${ch.id}')">${name.trim()}</a>`;
+    return `<span class="wlink missing" title="אין דמות בשם הזה">${name.trim()}</span>`;
+  });
+  out = out.replace(/\(\(([^)(]+)\)\)/g,(m,title)=>{
+    const raw=title.replace(/&quot;/g,'"').trim();
+    const hit=findStoryByTitle(raw);
+    if(hit && hit.kind==="char" && canViewChar(hit.char) && (emode(hit.entry)!=="secret"||hit.char.ownerId===DB.currentUser))
+      return `<a class="wlink story" onclick="event.stopPropagation();gotoStory('${hit.char.id}','${hit.entry.id}')">${title.trim()}</a>`;
+    if(hit && hit.kind==="loose" && ((hit.story.mode||"mine")!=="secret"||hit.story.ownerId===DB.currentUser))
+      return `<a class="wlink story" onclick="event.stopPropagation();go('story','${hit.story.id}')">${title.trim()}</a>`;
+    return `<span class="wlink missing" title="אין סיפור עם הכותרת הזו">${title.trim()}</span>`;
+  });
+  return out;
+}
+let pendingScroll=null;
+function openEntry(charId, entryId){ route={name:"entry", id:charId, eid:entryId}; render(); window.scrollTo(0,0); }
+function gotoStory(charId, entryId){ openEntry(charId, entryId); }
+
+/* character preview popup */
+function openCharPop(ev, id){
+  const c=DB.chars.find(x=>x.id===id); if(!c) return;
+  const o=user(c.ownerId), vcount=visibleEntries(c).length;
+  const tribes=(c.tribes||[]).map(t=>`<span class="tag tribe" onclick="event.stopPropagation();go('tribe','${esc(t)}')">${esc(t)}</span>`).join("");
+  const ess=((c.preview||c.essence)||"").replace(/\s+/g," ").trim();
+  const pop=document.getElementById("char-pop");
+  pop.innerHTML=`
+    <div class="cp-head"><span class="cp-glyph"${glyphStyle(c.color)}>${c.glyph}</span>
+      <div style="flex:1"><div class="cp-name">${esc(c.name)}</div>
+        <div class="cp-by">מאת ${esc(o.name)} · ${vcount} סיפורים</div></div>
+      <button class="cp-x" onclick="closeCharPop()">✕</button></div>
+    ${ess?`<div class="cp-essence">${esc(ess.length>200?ess.slice(0,200)+"…":ess)}</div>`:""}
+    ${tribes?`<div class="tags" style="margin-bottom:12px">${tribes}</div>`:""}
+    <button class="btn sm" style="width:100%" onclick="closeCharPop();go('char','${c.id}')">פתח את העולם שלה →</button>`;
+  pop.style.display="block";
+  const pw=pop.offsetWidth, ph=pop.offsetHeight;
+  let x=ev.clientX-pw/2, y=ev.clientY+16;
+  if(x+pw>window.innerWidth-12) x=window.innerWidth-pw-12;
+  if(x<12) x=12;
+  if(y+ph>window.innerHeight-12) y=ev.clientY-ph-16;
+  if(y<12) y=12;
+  pop.style.left=x+"px"; pop.style.top=y+"px";
+}
+function closeCharPop(){ document.getElementById("char-pop").style.display="none"; }
+document.addEventListener("click",e=>{
+  const pop=document.getElementById("char-pop");
+  if(pop.style.display==="block" && !pop.contains(e.target)) closeCharPop();
+});
+
+/* ===================== connection map (force-directed graph) ===================== */
+let MAP={nodes:[],links:[],raf:null,alpha:0,svg:null,g:null,t:{x:0,y:0,k:1},drag:null,pan:null,W:0,H:0,show:{tribe:true,char:true,story:true,user:true,mention:true}};
+const NCOLOR={tribe:"#9a8fd6",char:"#7aa2c8",story:"#84c89a",user:"#e0a3c8"};
+const NLABEL={tribe:"שבט",char:"דמות",story:"סיפור",user:"אדם"};
+
+function viewMap(){
+  const leg=Object.keys(NCOLOR).map(k=>`<label class="legitem"><input type="checkbox" checked onchange="mapToggle('${k}',this.checked)"><span class="dot-leg" style="background:${NCOLOR[k]}"></span>${NLABEL[k]}</label>`).join("");
+  return `<div class="lead">
+      <h1>מפת הקשרים</h1>
+      <p>כל החיבורים שקיימים כרגע: אנשים, דמויות, סיפורים ושבטים, והקשרים ביניהם (שייכות, תיוג, אזכור). גרור לזוז, גלגל לזום, גרור צומת להזיז, לחץ צומת כדי לעבור אליו.</p>
+    </div>
+    <div class="map-controls">
+      ${leg}
+      <label class="legitem"><input type="checkbox" checked onchange="mapToggle('mention',this.checked)"><span class="line-leg"></span>אזכור</label>
+      <span style="flex:1"></span>
+      <input class="map-search" id="map-search" placeholder="חיפוש צומת…" oninput="mapSearch(this.value)">
+      <button class="btn sm ghost" onclick="mapRelayout()">סדר מחדש</button>
+      <button class="btn sm ghost" onclick="mapZoom(1.25)">+</button>
+      <button class="btn sm ghost" onclick="mapZoom(0.8)">−</button>
+    </div>
+    <div class="map-wrap" id="map-wrap"><svg id="map-svg"></svg>
+      <div class="map-empty" id="map-empty" style="display:none">אין עדיין מספיק קשרים. צור דמויות, סיפורים, תייג שבטים ו-@אזכורים, והעץ יתחיל לצמוח.</div>
+    </div>`;
+}
+
+function buildGraph(){
+  const nodes=[], links=[], idx={};
+  const add=(id,label,type,data)=>{ if(idx[id]) return idx[id]; const n={id,label,type,data,deg:0}; nodes.push(n); idx[id]=n; return n; };
+  DB.users.forEach(u=>add("U:"+u.id,u.name,"user",{uid:u.id}));
+  DB.chars.forEach(c=>{
+    if(!(c.vis==="public"||c.ownerId===DB.currentUser)) return;
+    add("C:"+c.id,c.name,"char",{cid:c.id});
+    links.push(["U:"+c.ownerId,"C:"+c.id,"own"]);
+    (c.tribes||[]).forEach(t=>{ add("T:"+t,t,"tribe",{t}); links.push(["T:"+t,"C:"+c.id,"tag"]); });
+    c.entries.forEach(e=>{
+      if(emode(e)==="secret" && e.authorId!==DB.currentUser) return;
+      const eid="E:"+c.id+":"+e.id;
+      add(eid,e.title||snippet(e.text,22),"story",{cid:c.id,eid:e.id});
+      links.push(["C:"+c.id,eid,"contains"]);
+      if(e.authorId!==c.ownerId) links.push(["U:"+e.authorId,eid,"wrote"]);
+    });
+  });
+  DB.loose.forEach(s=>{
+    if(!((s.mode||"mine")!=="secret"||s.ownerId===DB.currentUser)) return;
+    add("S:"+s.id,s.title||snippet(s.text,22),"story",{sid:s.id});
+    links.push(["U:"+s.ownerId,"S:"+s.id,"own"]);
+    (s.tribes||[]).forEach(t=>{ add("T:"+t,t,"tribe",{t}); links.push(["T:"+t,"S:"+s.id,"tag"]); });
+  });
+  const scan=(text,from)=>{ if(!text)return; const re=/@\[([^\]\[]+)\]|\[\[([^\]\[]+)\]\]/g; let m;
+    while((m=re.exec(text))){ const ch=findCharByName((m[1]||m[2]||"").trim()); if(ch&&idx["C:"+ch.id]&&idx[from]&&from!=="C:"+ch.id) links.push([from,"C:"+ch.id,"mention"]); } };
+  DB.chars.forEach(c=>{ if(!idx["C:"+c.id])return; scan(c.essence,"C:"+c.id); c.entries.forEach(e=>{const eid="E:"+c.id+":"+e.id; if(idx[eid]){scan(e.text,eid);scan(e.title,eid);}});});
+  DB.loose.forEach(s=>{ const id="S:"+s.id; if(idx[id]){scan(s.text,id);scan(s.title,id);} });
+  const seen=new Set(), L=[];
+  links.forEach(([a,b,t])=>{ if(!idx[a]||!idx[b])return; const k=a+">"+b+">"+t; if(seen.has(k))return; seen.add(k); L.push({s:idx[a],t:idx[b],type:t}); idx[a].deg++; idx[b].deg++; });
+  return {nodes,links:L};
+}
+
+function nrad(n){ return (n.type==="tribe"?9:n.type==="user"?7:n.type==="char"?6:4) + Math.min(7,n.deg*0.7); }
+
+function initMap(){
+  const wrap=document.getElementById("map-wrap"); if(!wrap) return;
+  const g=buildGraph();
+  MAP.nodes=g.nodes; MAP.links=g.links;
+  MAP.W=wrap.clientWidth; MAP.H=wrap.clientHeight;
+  document.getElementById("map-empty").style.display = g.nodes.length<2 ? "block":"none";
+  // seed positions in a circle around center
+  const cx=MAP.W/2, cy=MAP.H/2;
+  MAP.nodes.forEach((n,i)=>{ const ang=i*2.399; const rad=30+Math.sqrt(i)*26; n.x=cx+Math.cos(ang)*rad; n.y=cy+Math.sin(ang)*rad; n.vx=0; n.vy=0; });
+  MAP.t={x:0,y:0,k:1};
+  drawMapDom();
+  MAP.alpha=1; runMap();
+  bindMapEvents();
+}
+
+function drawMapDom(){
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.getElementById("map-svg");
+  svg.setAttribute("width",MAP.W); svg.setAttribute("height",MAP.H);
+  svg.innerHTML="";
+  const g=document.createElementNS(NS,"g"); svg.appendChild(g); MAP.svg=svg; MAP.g=g;
+  const le=document.createElementNS(NS,"g"); g.appendChild(le);
+  const ne=document.createElementNS(NS,"g"); g.appendChild(ne);
+  MAP.links.forEach(l=>{
+    const ln=document.createElementNS(NS,"line");
+    ln.setAttribute("stroke", l.type==="mention"?"#e0a3c8":"#3a3550");
+    ln.setAttribute("stroke-width", l.type==="mention"?1.1:1);
+    if(l.type==="mention") ln.setAttribute("stroke-dasharray","4 3");
+    ln.setAttribute("opacity",.55); l.el=ln; le.appendChild(ln);
+  });
+  MAP.nodes.forEach(n=>{
+    const grp=document.createElementNS(NS,"g"); grp.setAttribute("class","mnode"); grp.style.cursor="pointer";
+    const c=document.createElementNS(NS,"circle");
+    c.setAttribute("r",nrad(n)); c.setAttribute("fill",NCOLOR[n.type]);
+    c.setAttribute("stroke","#0f0e13"); c.setAttribute("stroke-width",1.5);
+    const ti=document.createElementNS(NS,"title"); ti.textContent=NLABEL[n.type]+": "+n.label; grp.appendChild(ti);
+    grp.appendChild(c);
+    if(n.type!=="story"){
+      const tx=document.createElementNS(NS,"text"); tx.textContent=n.label;
+      tx.setAttribute("font-size", n.type==="tribe"?12:11);
+      tx.setAttribute("fill","#cfc9de"); tx.setAttribute("text-anchor","middle");
+      tx.setAttribute("dy", -nrad(n)-5); tx.setAttribute("pointer-events","none");
+      n.tx=tx; grp.appendChild(tx);
+    }
+    n.el=grp; n.circle=c;
+    grp.addEventListener("mousedown",ev=>startNodeDrag(ev,n));
+    grp.addEventListener("click",ev=>{ if(MAP.moved) return; mapNavigate(n); });
+    ne.appendChild(grp);
+  });
+  applyTransform();
+}
+
+function mapNavigate(n){
+  if(n.type==="tribe") go("tribe", n.data.t);
+  else if(n.type==="char") go("char", n.data.cid);
+  else if(n.type==="story"){ if(n.data.sid) go("story", n.data.sid); else openEntry(n.data.cid, n.data.eid); }
+}
+
+function runMap(){
+  tickMap();
+  positionMap();
+  MAP.alpha*=0.985;
+  if(MAP.alpha>0.02 || MAP.drag) MAP.raf=requestAnimationFrame(runMap);
+  else MAP.raf=null;
+}
+function tickMap(){
+  const N=MAP.nodes, L=MAP.links, cx=MAP.W/2, cy=MAP.H/2;
+  const REP=900, SPRING=0.04, GRAV=0.015, DAMP=0.82, a=MAP.alpha;
+  for(let i=0;i<N.length;i++){ const p=N[i];
+    for(let j=i+1;j<N.length;j++){ const q=N[j];
+      let dx=p.x-q.x, dy=p.y-q.y, d2=dx*dx+dy*dy||0.01;
+      if(d2>90000) continue;
+      const d=Math.sqrt(d2), f=REP/d2, fx=dx/d*f, fy=dy/d*f;
+      p.vx+=fx; p.vy+=fy; q.vx-=fx; q.vy-=fy;
+    }
+  }
+  L.forEach(l=>{ const want=l.type==="mention"?130:l.type==="tag"?95:60;
+    let dx=l.t.x-l.s.x, dy=l.t.y-l.s.y, d=Math.sqrt(dx*dx+dy*dy)||0.01, f=(d-want)*SPRING, fx=dx/d*f, fy=dy/d*f;
+    l.s.vx+=fx; l.s.vy+=fy; l.t.vx-=fx; l.t.vy-=fy; });
+  N.forEach(n=>{ n.vx+=(cx-n.x)*GRAV; n.vy+=(cy-n.y)*GRAV;
+    if(n===MAP.drag) return; n.vx*=DAMP; n.vy*=DAMP; n.x+=n.vx*a; n.y+=n.vy*a; });
+}
+function positionMap(){
+  MAP.links.forEach(l=>{ if(!l.el)return; l.el.setAttribute("x1",l.s.x);l.el.setAttribute("y1",l.s.y);l.el.setAttribute("x2",l.t.x);l.el.setAttribute("y2",l.t.y); });
+  MAP.nodes.forEach(n=>{ if(n.el) n.el.setAttribute("transform","translate("+n.x+","+n.y+")"); });
+}
+function applyTransform(){ if(MAP.g) MAP.g.setAttribute("transform","translate("+MAP.t.x+","+MAP.t.y+") scale("+MAP.t.k+")"); }
+function reheat(){ MAP.alpha=Math.max(MAP.alpha,0.4); if(!MAP.raf) MAP.raf=requestAnimationFrame(runMap); }
+
+function screenToWorld(ev){
+  const r=MAP.svg.getBoundingClientRect();
+  return { x:(ev.clientX-r.left-MAP.t.x)/MAP.t.k, y:(ev.clientY-r.top-MAP.t.y)/MAP.t.k };
+}
+function startNodeDrag(ev,n){ ev.stopPropagation(); ev.preventDefault(); MAP.drag=n; MAP.moved=false; reheat(); }
+function bindMapEvents(){
+  const svg=MAP.svg;
+  svg.addEventListener("mousedown",ev=>{ MAP.pan={x:ev.clientX,y:ev.clientY,ox:MAP.t.x,oy:MAP.t.y}; });
+  window.addEventListener("mousemove",mapMove);
+  window.addEventListener("mouseup",()=>{ MAP.drag=null; MAP.pan=null; });
+  svg.addEventListener("wheel",ev=>{ ev.preventDefault(); const r=svg.getBoundingClientRect();
+    const mx=ev.clientX-r.left, my=ev.clientY-r.top, k0=MAP.t.k, k=Math.max(0.2,Math.min(3,k0*(ev.deltaY<0?1.1:0.9)));
+    MAP.t.x=mx-(mx-MAP.t.x)*(k/k0); MAP.t.y=my-(my-MAP.t.y)*(k/k0); MAP.t.k=k; applyTransform();
+  },{passive:false});
+}
+function mapMove(ev){
+  if(MAP.drag){ const w=screenToWorld(ev); MAP.drag.x=w.x; MAP.drag.y=w.y; MAP.drag.vx=0; MAP.drag.vy=0; MAP.moved=true; positionMap(); reheat(); return; }
+  if(MAP.pan){ MAP.t.x=MAP.pan.ox+(ev.clientX-MAP.pan.x); MAP.t.y=MAP.pan.oy+(ev.clientY-MAP.pan.y); applyTransform(); }
+}
+function mapZoom(f){ MAP.t.k=Math.max(0.2,Math.min(3,MAP.t.k*f)); applyTransform(); }
+function mapRelayout(){ if(!MAP.nodes.length) return; const cx=MAP.W/2,cy=MAP.H/2;
+  MAP.nodes.forEach((n,i)=>{ const ang=i*2.399, rad=30+Math.sqrt(i)*26; n.x=cx+Math.cos(ang)*rad; n.y=cy+Math.sin(ang)*rad; n.vx=0;n.vy=0; });
+  MAP.t={x:0,y:0,k:1}; applyTransform(); MAP.alpha=1; if(!MAP.raf) MAP.raf=requestAnimationFrame(runMap); }
+function mapToggle(type,on){ MAP.show[type]=on;
+  MAP.nodes.forEach(n=>{ if(n.type===type&&n.el) n.el.style.display=on?"":"none"; });
+  MAP.links.forEach(l=>{ if(!l.el)return; const vis=MAP.show.mention||l.type!=="mention";
+    const ends=MAP.show[l.s.type]!==false&&MAP.show[l.t.type]!==false;
+    l.el.style.display=(vis&&ends)?"":"none"; });
+}
+function mapSearch(q){ q=q.trim().toLowerCase();
+  MAP.nodes.forEach(n=>{ if(!n.circle)return; const hit=q&&n.label.toLowerCase().includes(q);
+    n.circle.setAttribute("stroke", hit?"#fff":"#0f0e13"); n.circle.setAttribute("stroke-width", hit?3:1.5);
+    n.el.style.opacity = (q&&!hit)?0.25:1; });
+}
+
+/* stories that mention a character via @[Name] or [[Name]] (a tag, not an attachment) */
+function refsName(text, name){
+  if(!text) return false;
+  const n=name.trim().toLowerCase();
+  const re=/@\[([^\]\[]+)\]|\[\[([^\]\[]+)\]\]/g; let m;
+  while((m=re.exec(text))){ const ref=(m[1]||m[2]||"").trim().toLowerCase(); if(ref===n) return true; }
+  return false;
+}
+function snippet(t,len){ len=len||70; t=(t||"").replace(/\s+/g," ").trim(); return t.length>len?t.slice(0,len)+"…":t; }
+function mentionsOf(c){
+  const out=[];
+  DB.loose.forEach(s=>{
+    if((s.mode||"mine")==="secret" && s.ownerId!==DB.currentUser) return;
+    if(refsName(s.text,c.name)||refsName(s.title,c.name)) out.push({type:"loose", s});
+  });
+  DB.chars.forEach(ch=>{
+    if(ch.id===c.id || !canViewChar(ch)) return;
+    ch.entries.forEach(e=>{
+      if(emode(e)==="secret" && ch.ownerId!==DB.currentUser) return;
+      if(refsName(e.text,c.name)||refsName(e.title,c.name)) out.push({type:"char", char:ch, entry:e});
+    });
+  });
+  return out;
+}
+const TALK=["סגור לשיחה","פתוח לשיחה","משתוקק לשיחה"];
+function allTribes(){
+  const s=new Set(BASE_TRIBES);
+  DB.chars.forEach(c=>(c.tribes||[]).forEach(t=>s.add(t)));
+  DB.loose.forEach(x=>(x.tribes||[]).forEach(t=>s.add(t)));
+  return [...s];
+}
+function tribeCount(t){ return DB.chars.filter(c=>c.vis==="public" && (c.tribes||[]).includes(t)).length; }
+function tribeHiddenFor(ownerId,t){ const u=user(ownerId); return !!(u&&u.privTribes&&u.privTribes.includes(t)) && ownerId!==DB.currentUser; }
+function charsInTribe(t){ return DB.chars.filter(c=>(c.vis==="public"||c.ownerId===DB.currentUser) && !tribeHiddenFor(c.ownerId,t) && (c.tribes||[]).includes(t)); }
+function looseInTribe(t){ return DB.loose.filter(s=>((s.mode||"mine")!=="secret"||s.ownerId===DB.currentUser) && !tribeHiddenFor(s.ownerId,t) && (s.tribes||[]).includes(t)); }
+function tribeTotal(t){ return charsInTribe(t).length + looseInTribe(t).length; }
+
+/* ---------- nav state ---------- */
+let route = {name:"discover", id:null};
+let tribeFilter = null;
+function go(name, id=null){ route={name,id}; render(); window.scrollTo(0,0); }
+function setTribe(t){ tribeFilter = (tribeFilter===t)?null:t; render(); }
+
+/* ---------- top user switcher ---------- */
+function renderWho(){
+  const sel=document.getElementById("who-sel");
+  sel.innerHTML = DB.users.map(u=>`<option value="${u.id}" ${u.id===DB.currentUser?"selected":""}>${u.parentId?"↳ ":""}${esc(u.name)}</option>`).join("");
+  const av=document.getElementById("who-av");
+  av.textContent=initials(me().name); av.style.background=color(me().id);
+}
+function switchUser(id){ DB.currentUser=id; save(); applyTheme(); renderWho(); render(); }
+
+function applyTheme(){
+  const light = me() && me().theme==="light";
+  document.documentElement.classList.toggle("light", !!light);
+  const b=document.getElementById("theme-btn"); if(b) b.textContent = light ? "☀️" : "🌙";
+}
+function toggleTheme(){ const u=me(); u.theme = (u.theme==="light")?"dark":"light"; save(); applyTheme(); }
+
+/* fireplace ambience — toggle, resize (mini/normal/full), drag to move */
+const FIRE_SIZES=["bubble","mini","normal","full"];
+let hearthInit=false, FIRE_AUDIO=null, writerOpen=false;
+function ensureFireAudio(){ if(!FIRE_AUDIO){ FIRE_AUDIO=new Audio("fireplace.ogg"); FIRE_AUDIO.loop=true; FIRE_AUDIO.volume=0.5; FIRE_AUDIO.addEventListener("error",()=>{}); } return FIRE_AUDIO; }
+function updateFireSound(){
+  const u=me(); const want=(!!u.fire || (writerOpen && !!u.writerAmbient)) && !u.fireMuted;
+  const a=ensureFireAudio();
+  if(want){ const p=a.play(); if(p&&p.catch)p.catch(()=>{}); } else { try{a.pause();}catch(e){} }
+  const lbl=u.fireMuted?"🔇":"🔊";
+  const m1=document.getElementById("fire-mute"), m2=document.getElementById("amb-snd");
+  if(m1)m1.textContent=lbl; if(m2)m2.textContent=lbl;
+}
+function applyFire(){
+  const u=me(); const on=!!(u&&u.fire);
+  const h=document.getElementById("hearth"), v=document.getElementById("hearth-video");
+  if(!h) return;
+  if(!hearthInit){ hearthInit=true; v.addEventListener("error",()=>h.classList.add("novideo")); initFireDrag(); }
+  const b=document.getElementById("fire-btn"); if(b) b.style.opacity = on?"1":".6";
+  updateFireSound();
+  h.classList.toggle("on", on);
+  const size=(u&&u.fireSize)||"normal";
+  FIRE_SIZES.forEach(s=>h.classList.toggle("size-"+s, s===size));
+  // position (ignored in full)
+  const pos=u&&u.firePos;
+  if(size!=="full" && pos){ h.style.insetInlineStart="auto"; h.style.bottom="auto"; h.style.left=pos.x+"px"; h.style.top=pos.y+"px"; }
+  else { h.style.left=""; h.style.top=""; h.style.insetInlineStart=""; h.style.bottom=""; }
+  if(on){ if(!v.getAttribute("src")) v.setAttribute("src","fireplace.webm"); const p=v.play(); if(p&&p.catch)p.catch(()=>{}); }
+  else { try{v.pause();}catch(e){} }
+}
+function toggleFire(){ const u=me(); u.fire=!u.fire; save(); applyFire(); }
+function toggleFireMute(){ const u=me(); u.fireMuted=!u.fireMuted; save(); applyFire(); applyWriterAmbient(); }
+
+/* in-writer fire ambience: fire as the background of the writing surface */
+let wbgInit=false;
+function applyWriterAmbient(){
+  const u=me(); const on=!!(u&&u.writerAmbient);
+  const w=document.getElementById("writer"); if(!w) return;
+  const bg=document.getElementById("writer-bg");
+  if(!wbgInit){ wbgInit=true; bg.addEventListener("error",()=>w.classList.add("novideo")); }
+  w.classList.toggle("amb", on);
+  document.getElementById("amb-fire").style.opacity = on?"1":".6";
+  document.getElementById("amb-intensity").style.display = on?"":"none";
+  document.getElementById("amb-snd").style.display = on?"":"none";
+  const inten = (u&&typeof u.writerIntensity==="number")?u.writerIntensity:42;
+  document.getElementById("amb-intensity").value = inten;
+  setScrimFromIntensity(inten);
+  if(on){ if(!bg.getAttribute("src")) bg.setAttribute("src","fireplace.webm"); const p=bg.play(); if(p&&p.catch)p.catch(()=>{}); }
+  else { try{bg.pause();}catch(e){} }
+  updateFireSound();
+}
+function setScrimFromIntensity(v){
+  const min=0.40, max=0.82;                 // never lighter than .40 → text stays legible
+  const scrim = max - (v/100)*(max-min);
+  const s=document.getElementById("writer-bg-scrim"); if(s) s.style.background="rgba(10,8,6,"+scrim.toFixed(2)+")";
+}
+function toggleWriterAmbient(){ const u=me(); u.writerAmbient=!u.writerAmbient; save(); applyWriterAmbient(); }
+function setWriterIntensity(v){ const u=me(); u.writerIntensity=+v; save(); setScrimFromIntensity(+v); }
+function fireResize(dir){
+  const u=me(); const cur=FIRE_SIZES.indexOf((u.fireSize)||"normal");
+  const next=Math.max(0,Math.min(FIRE_SIZES.length-1,cur+dir));
+  u.fireSize=FIRE_SIZES[next]; save(); applyFire();
+}
+function initFireDrag(){
+  const h=document.getElementById("hearth");
+  let drag=null;
+  const frame=h.querySelector(".hearth-frame");
+  frame.addEventListener("mousedown",e=>{
+    if(e.target.closest(".hearth-ctrl")) return;
+    const u=me(); if((u.fireSize||"normal")==="full") return;
+    const r=h.getBoundingClientRect();
+    drag={dx:e.clientX-r.left, dy:e.clientY-r.top}; h.classList.add("dragging"); e.preventDefault();
+  });
+  window.addEventListener("mousemove",e=>{
+    if(!drag) return;
+    let x=e.clientX-drag.dx, y=e.clientY-drag.dy;
+    const w=h.offsetWidth, ht=h.offsetHeight;
+    x=Math.max(6,Math.min(window.innerWidth-w-6,x)); y=Math.max(60,Math.min(window.innerHeight-ht-6,y));
+    h.style.insetInlineStart="auto"; h.style.bottom="auto"; h.style.left=x+"px"; h.style.top=y+"px";
+  });
+  window.addEventListener("mouseup",()=>{
+    if(!drag) return; drag=null; h.classList.remove("dragging");
+    const u=me(); u.firePos={x:parseInt(h.style.left)||24, y:parseInt(h.style.top)||80}; save();
+  });
+}
+
+/* sub-profiles (personas under a profile) */
+function createSubProfile(){
+  const name=prompt("שם תת-הפרופיל:"); if(!name||!name.trim()) return;
+  const id="u"+Date.now();
+  DB.users.push({id, name:name.trim(), bio:"", parentId:DB.currentUser});
+  DB.currentUser=id; save(); applyTheme(); go("profile");
+}
+function deleteSubProfile(id){
+  const u=DB.users.find(x=>x.id===id); if(!u||!u.parentId) return;
+  if(!confirm('למחוק את תת-הפרופיל "'+u.name+'" וכל התוכן שלו? אי אפשר לשחזר.')) return;
+  DB.chars=DB.chars.filter(c=>c.ownerId!==id);
+  DB.loose=DB.loose.filter(s=>s.ownerId!==id);
+  const parent=u.parentId;
+  DB.users=DB.users.filter(x=>x.id!==id);
+  DB.currentUser=DB.users.find(x=>x.id===parent)?parent:DB.users[0].id;
+  save(); applyTheme(); go("profile");
+}
+
+/* per-entity privacy toggle (same switch on every layer) */
+function privToggle(on, onclickStr){
+  return `<button class="ptoggle ${on?'on':''}" onclick="event.stopPropagation();${onclickStr}"><span class="knob"></span>${on?'חסוי':'גלוי'}</button>`;
+}
+function setCharVis(id,on){ const c=DB.chars.find(x=>x.id===id); if(c){ c.vis=on?"private":"public"; save(); render(); } }
+function setEntrySecret(cid,eid,on){ const c=DB.chars.find(x=>x.id===cid); const e=c&&c.entries.find(x=>x.id===eid); if(e){ e.mode=on?"secret":"mine"; save(); render(); } }
+function setLooseSecret(id,on){ const s=DB.loose.find(x=>x.id===id); if(s){ s.mode=on?"secret":"mine"; save(); render(); } }
+function setUserColor(c){ me().color=c||undefined; save(); render(); }
+function setTribeColorCur(c){ const t=route.id; if(!DB.tribeMeta[t]) DB.tribeMeta[t]={media:[]}; DB.tribeMeta[t].color=c||undefined; save(); render(); }
+function myTribeHidden(t){ const u=me(); return !!(u.privTribes && u.privTribes.includes(t)); }
+function toggleMyTribe(t,on){ const u=me(); if(!u.privTribes) u.privTribes=[];
+  if(on){ if(!u.privTribes.includes(t)) u.privTribes.push(t); } else { u.privTribes=u.privTribes.filter(x=>x!==t); }
+  save(); render(); }
+
+function exportData(){
+  const data=JSON.stringify(DB,null,2);
+  const blob=new Blob([data],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="הדמויות-של-דונר-גיבוי-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function importData(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d.users||!d.chars) throw new Error("bad");
+      d.drafts=d.drafts||{}; d.draftTitles=d.draftTitles||{}; d.loose=d.loose||[];
+      if(!d.currentUser||!d.users.find(u=>u.id===d.currentUser)) d.currentUser=d.users[0].id;
+      DB=d; save(); go("profile");
+      alert("השחזור הושלם. כל הנתונים נטענו מהקובץ.");
+    }catch(e){ alert("הקובץ לא תקין או לא קובץ גיבוי של דונר."); }
+    input.value="";
+  };
+  r.readAsText(f);
+}
+
+/* ---------- render ---------- */
+function render(){
+  if(MAP.raf){ cancelAnimationFrame(MAP.raf); MAP.raf=null; }
+  applyTheme();
+  applyFire();
+  renderWho();
+  document.getElementById("nav-discover").classList.toggle("active",route.name==="discover");
+  document.getElementById("nav-tribes").classList.toggle("active",route.name==="tribes"||route.name==="tribe");
+  document.getElementById("nav-map").classList.toggle("active",route.name==="map");
+  document.getElementById("nav-profile").classList.toggle("active",route.name==="profile");
+  document.getElementById("fab").style.display = (route.name==="profile")?"block":"none";
+  const v=document.getElementById("view");
+  if(route.name==="discover") v.innerHTML=viewDiscover();
+  else if(route.name==="profile") v.innerHTML=viewProfile();
+  else if(route.name==="char") v.innerHTML=viewChar(route.id);
+  else if(route.name==="story") v.innerHTML=viewStory(route.id);
+  else if(route.name==="tribes") v.innerHTML=viewTribes();
+  else if(route.name==="tribe") v.innerHTML=viewTribe(route.id);
+  else if(route.name==="entry") v.innerHTML=viewEntry(route.id, route.eid);
+  else if(route.name==="map"){ v.innerHTML=viewMap(); initMap(); }
+  if(pendingScroll){
+    const el=document.getElementById("story-"+pendingScroll);
+    pendingScroll=null;
+    if(el){ el.scrollIntoView({behavior:"smooth",block:"center"}); el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),1800); }
+  }
+}
+
+function card(c){
+  const o=user(c.ownerId);
+  const tags=[];
+  if(c.vis==="private") tags.push(`<span class="tag private">🔒 פרטי</span>`);
+  (c.tribes||[]).forEach(t=>tags.push(`<span class="tag tribe" onclick="event.stopPropagation();go('tribe','${esc(t)}')">${esc(t)}</span>`));
+  if(c.talk>0) tags.push(`<span class="tag talk">${TALK[c.talk]}</span>`);
+  if(hasContribute(c)) tags.push(`<span class="tag collab">⤳ פתוח לתרומה</span>`);
+  const vcount = visibleEntries(c).length;
+  return `<div class="card" onclick="go('char','${c.id}')">
+    <div class="glyph"${glyphStyle(c.color)}>${c.glyph}</div>
+    <h3>${esc(c.name)}</h3>
+    <p class="essence">${esc(c.preview||c.essence)}</p>
+    <div class="meta">
+      <span class="owner"><span class="dot" style="background:${color(o.id)}">${initials(o.name)}</span>${esc(o.name)}</span>
+      <span>${vcount} סיפורים</span>
+    </div>
+    ${tags.length?`<div class="tags">${tags.join("")}</div>`:""}
+  </div>`;
+}
+
+function storyCard(s){
+  const o=user(s.ownerId);
+  const m=EMODES[s.mode||"mine"];
+  return `<div class="card story-card" onclick="go('story','${s.id}')">
+    ${s.media&&s.media.length?`<div class="cover"><img src="${s.media[0]}" alt=""></div>`:`<div class="glyph"${glyphStyle(s.color)}>✍</div>`}
+    <h3>${esc(s.title||"ללא כותרת")}</h3>
+    <p class="essence">${esc(s.preview||snippet(s.text,170))}</p>
+    <div class="meta">
+      <span class="owner"><span class="dot" style="background:${color(o.id)}">${initials(o.name)}</span>${esc(o.name)}</span>
+      <span>סיפור עצמאי</span>
+    </div>
+    <div class="tags">${(s.tribes||[]).map(t=>`<span class="tag tribe" onclick="event.stopPropagation();go('tribe','${esc(t)}')">${esc(t)}</span>`).join("")}<span class="emode ${s.mode||'mine'}">${m.icon} ${m.label}</span></div>
+  </div>`;
+}
+
+function entryCard(c,e){
+  const a=user(e.authorId), guest=e.authorId!==c.ownerId;
+  const m=EMODES[emode(e)];
+  return `<div class="card story-card" onclick="openEntry('${c.id}','${e.id}')">
+    ${e.media&&e.media.length?`<div class="cover"><img src="${e.media[0]}" alt=""></div>`:`<div class="glyph"${glyphStyle(e.color)}>✍</div>`}
+    <h3>${esc(e.title||"ללא כותרת")}</h3>
+    <p class="essence">${esc(e.preview||snippet(e.text,170))}</p>
+    <div class="meta"><span>${when(e.ts)}</span>${guest?`<span>· ${esc(a.name)}</span>`:""}</div>
+    <div class="tags">${guest?`<span class="tag collab">תרומה</span>`:""}<span class="emode ${emode(e)}">${m.icon} ${m.label}</span></div>
+  </div>`;
+}
+
+function viewEntry(charId, entryId){
+  const c=DB.chars.find(x=>x.id===charId);
+  if(!c) return `<button class="back" onclick="go('discover')">← חזרה</button><div class="empty">הסיפור לא נמצא.</div>`;
+  const e=c.entries.find(x=>x.id===entryId);
+  if(!e) return `<button class="back" onclick="go('char','${c.id}')">← חזרה</button><div class="empty">הסיפור לא נמצא.</div>`;
+  const own=e.authorId===DB.currentUser, a=user(e.authorId), m=EMODES[emode(e)];
+  if(emode(e)==="secret" && !own) return `<button class="back" onclick="go('char','${c.id}')">← חזרה</button><div class="empty">הסיפור הזה חסוי.</div>`;
+  return `<button class="back" onclick="go('char','${c.id}')">← ${esc(c.name)}</button>
+    <div class="detail-head">
+      <div class="glyph"${glyphStyle(c.color)}>${c.glyph}</div>
+      <div style="flex:1">
+        <h1>${esc(e.title||"ללא כותרת")}</h1>
+        <div class="by">בעולם של <a class="wlink char" onclick="openCharPop(event,'${c.id}')">${esc(c.name)}</a> &middot; מאת ${esc(a.name)}</div>
+        <div class="tags"><span class="emode ${emode(e)}" title="${m.hint}">${m.icon} ${m.label}</span></div>
+      </div>
+      ${own?`<div class="ent-actions">${privToggle(emode(e)==="secret",`setEntrySecret('${c.id}','${e.id}',${emode(e)!=="secret"})`)}<button class="btn ghost sm" onclick="openWriter('${c.id}','${e.id}')">עריכה</button></div>`:""}
+    </div>
+    <div class="story-block">
+      <div class="stamp"><span class="stamp-date">${fdate(e.ts)}</span><span class="stamp-rel">${when(e.ts)}</span></div>
+      <div class="entry ${own?'editable':''}" ${own?`onclick="openWriter('${c.id}','${e.id}')" title="לחץ לעריכה"`:""}>
+        <div class="etext">${linkify(e.text)}</div>
+        ${mediaGallery(e.media)}
+      </div>
+    </div>`;
+}
+
+function viewDiscover(){
+  let list=DB.chars.filter(c=>c.vis==="public").sort((a,b)=>lastTs(b)-lastTs(a));
+  if(tribeFilter) list=list.filter(c=>(c.tribes||[]).includes(tribeFilter));
+  const tribes=allTribes().filter(t=>tribeCount(t)>0).sort((a,b)=>tribeCount(b)-tribeCount(a));
+  const chips=`<div class="tribebar">
+      <button class="chip ${!tribeFilter?'sel':''}" onclick="setTribe(null)">הכל</button>
+      ${tribes.map(t=>`<button class="chip ${tribeFilter===t?'sel':''}" onclick="setTribe('${esc(t)}')">${esc(t)} <i>${tribeCount(t)}</i></button>`).join("")}
+    </div>`;
+  const looseList = tribeFilter ? [] : DB.loose.filter(s=>(s.mode||"mine")!=="secret").sort((a,b)=>b.ts-a.ts);
+  const looseSection = looseList.length ? `
+    <div class="section-title"><h2>סיפורים עצמאיים</h2><span class="count">${looseList.length}</span><div class="line"></div></div>
+    <div class="grid">${looseList.map(storyCard).join("")}</div>` : "";
+  return `<div class="lead">
+      <h1>גילוי</h1>
+      <p>דמויות וסיפורים של כולם, מסודרים בשבטים. בחר שבט כדי לראות מי עוד חושב על אותו נושא דרך הדמויות שלו.</p>
+    </div>
+    ${chips}
+    <div class="section-title"><h2>דמויות</h2><span class="count">${list.length}</span><div class="line"></div></div>
+    <div class="grid">${ list.length? list.map(card).join("") : `<div class="empty">אין עדיין דמויות${tribeFilter?` בשבט "${esc(tribeFilter)}"`:""}.</div>`}</div>
+    ${looseSection}`;
+}
+function lastTs(c){ const all=[...c.entries,...c.convo]; return all.length?Math.max(...all.map(x=>x.ts)):0; }
+function emode(e){ return e.mode || "mine"; }
+function visibleEntries(c){
+  if(c.ownerId===DB.currentUser) return c.entries;
+  return c.entries.filter(e=>emode(e)!=="secret");
+}
+function hasContribute(c){ return c.entries.some(e=>emode(e)==="contribute"); }
+
+function subCard(su){
+  const nc=DB.chars.filter(c=>c.ownerId===su.id).length, ns=DB.loose.filter(s=>s.ownerId===su.id).length;
+  return `<div class="card" onclick="switchUser('${su.id}')">
+    <div class="avatar" style="width:54px;height:54px;font-size:22px;margin:0 auto 14px;background:${color(su.id)}">${initials(su.name)}</div>
+    <h3>${esc(su.name)}</h3>
+    <div class="meta"><span>${nc} דמויות</span><span>·</span><span>${ns} סיפורים</span></div>
+  </div>`;
+}
+function viewProfile(){
+  const u=me();
+  const parent=u.parentId?user(u.parentId):null;
+  const subs=DB.users.filter(x=>x.parentId===u.id);
+  const mine=DB.chars.filter(c=>c.ownerId===u.id).sort((a,b)=>lastTs(b)-lastTs(a));
+  const myLoose=DB.loose.filter(s=>s.ownerId===u.id).sort((a,b)=>b.ts-a.ts);
+  return `${parent?`<button class="back" onclick="switchUser('${parent.id}')">↑ חזרה ל${esc(parent.name)}</button>`:""}
+    <div class="profile-head">
+      <div class="avatar" style="background:${color(u.id)}">${initials(u.name)}</div>
+      <div style="flex:1"><h1>${esc(u.name)}${u.parentId?` <span class="sub-tag">תת-פרופיל</span>`:""}</h1><p>${esc(u.bio)}</p></div>
+      <div class="backup">
+        ${u.parentId?`<button class="btn sm danger" onclick="deleteSubProfile('${u.id}')">מחק תת-פרופיל</button>`:""}
+        <button class="btn sm ghost" onclick="exportData()">⤓ גיבוי לקובץ</button>
+        <button class="btn sm ghost" onclick="document.getElementById('import-file').click()">⤒ שחזור</button>
+        <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importData(this)">
+      </div>
+    </div>
+    <div class="prof-color"><span class="dest-label">צבע אישי:</span>${colorRow(u.color||"","setUserColor")}</div>
+
+    <div class="section-title"><h2>תת-פרופילים</h2><span class="count">${subs.length}</span><div class="line"></div>
+      <button class="btn sm ghost" onclick="createSubProfile()">+ תת-פרופיל</button></div>
+    <div class="grid">${ subs.length? subs.map(subCard).join("") :
+      `<div class="empty">אין תת-פרופילים. אפשר לפתוח פרסונה נפרדת עם דמויות, סיפורים וצבע משלה.</div>`}</div>
+
+
+    <div class="section-title"><h2>הסיפורים שלי</h2><span class="count">${myLoose.length}</span><div class="line"></div>
+      <button class="btn sm" onclick="openWriterNew()">✍ כתוב סיפור</button></div>
+    <div class="grid">${ myLoose.length? myLoose.map(storyCard).join("") :
+      `<div class="empty">עוד אין לך סיפורים עצמאיים. אפשר פשוט לכתוב, בלי לשייך לדמות.</div>`}</div>
+
+    <div class="section-title"><h2>הדמויות שלי</h2><span class="count">${mine.length}</span><div class="line"></div>
+      <button class="btn sm ghost" onclick="openEditor()">+ דמות</button></div>
+    <div class="grid">${ mine.length? mine.map(card).join("") :
+      `<div class="empty">עוד אין לך דמויות. כל דמות היא יישות שסביבה אתה בונה סיפור.<br><br><button class="btn" onclick="openEditor()">+ צור את הדמות הראשונה</button></div>`}</div>`;
+}
+
+function viewStory(id){
+  const s=DB.loose.find(x=>x.id===id);
+  if(!s) return `<button class="back" onclick="go('discover')">← חזרה</button><div class="empty">הסיפור לא נמצא.</div>`;
+  const o=user(s.ownerId);
+  const mine=s.ownerId===DB.currentUser;
+  if((s.mode||"mine")==="secret" && !mine) return `<button class="back" onclick="go('discover')">← חזרה</button><div class="empty">הסיפור הזה חסוי.</div>`;
+  const m=EMODES[s.mode||"mine"];
+  return `<button class="back" onclick="go('${mine?'profile':'discover'}')">← חזרה</button>
+    <div class="detail-head">
+      <div class="glyph"${glyphStyle(s.color)}>✍</div>
+      <div style="flex:1">
+        <h1>${esc(s.title||"ללא כותרת")}</h1>
+        <div class="by">סיפור עצמאי מאת <b>${esc(o.name)}</b></div>
+        <div class="tags">${(s.tribes||[]).map(t=>`<span class="tag tribe" onclick="go('tribe','${esc(t)}')">${esc(t)}</span>`).join("")}<span class="emode ${s.mode||'mine'}" title="${m.hint}">${m.icon} ${m.label}</span></div>
+      </div>
+      ${mine?`<div class="ent-actions">${privToggle((s.mode||'mine')==="secret",`setLooseSecret('${s.id}',${(s.mode||'mine')!=="secret"})`)}<button class="btn ghost sm" onclick="openLoose('${s.id}')">עריכה</button></div>`:""}
+    </div>
+    <div class="story-block">
+      <div class="stamp"><span class="stamp-date">${fdate(s.ts)}</span><span class="stamp-rel">${when(s.ts)}</span></div>
+      <div class="entry ${mine?'editable':''}" ${mine?`onclick="openLoose('${s.id}')" title="לחץ לעריכה"`:""}>
+        <div class="etext">${linkify(s.text)}</div>
+        ${mediaGallery(s.media)}
+      </div>
+    </div>`;
+}
+
+function tribeColor(t){ if(DB.tribeMeta[t]&&DB.tribeMeta[t].color) return DB.tribeMeta[t].color;
+  const c=["#9a8fd6","#7aa2c8","#84c89a","#c889b4","#6ac1c8","#cd7d7d","#b0a06a","#8f9ad6"]; let h=0; for(const ch of t) h=(h+ch.charCodeAt(0))%c.length; return c[h]; }
+function viewTribes(){
+  const tribes=allTribes().filter(t=>tribeTotal(t)>0).sort((a,b)=>tribeTotal(b)-tribeTotal(a));
+  const cards=tribes.map(t=>{
+    const col=tribeColor(t), nc=charsInTribe(t).length, ns=looseInTribe(t).length;
+    return `<div class="card tribe-card" onclick="go('tribe','${esc(t)}')">
+      <div class="glyph" style="background:${col}22;border-color:${col}66;color:${col}">☷</div>
+      <h3>${esc(t)}</h3>
+      <div class="meta"><span>${nc} דמויות</span><span>·</span><span>${ns} סיפורים</span></div>
+    </div>`;
+  }).join("");
+  return `<div class="lead">
+      <h1>שבטים</h1>
+      <p>הנושאים העליונים. כל שבט מאגד את הדמויות והסיפורים שחושבים על אותו עניין. זו השכבה שמעל הכל.</p>
+    </div>
+    <div class="grid">${ tribes.length? cards : `<div class="empty">עוד אין שבטים פעילים. תייג דמות או סיפור לשבט.</div>`}</div>`;
+}
+function viewTribe(t){
+  const col=tribeColor(t);
+  const chars=charsInTribe(t).sort((a,b)=>lastTs(b)-lastTs(a));
+  const stories=looseInTribe(t).sort((a,b)=>b.ts-a.ts);
+  return `<button class="back" onclick="go('tribes')">← כל השבטים</button>
+    <div class="tribe-head">
+      <div class="tribe-gem" style="background:${col}22;border-color:${col}66;color:${col}">☷</div>
+      <div style="flex:1"><h1>${esc(t)}</h1><p>שבט · ${chars.length} דמויות · ${stories.length} סיפורים</p></div>
+      <div class="tribe-priv">ההשתתפות שלי: ${privToggle(myTribeHidden(t),`toggleMyTribe('${esc(t)}',${!myTribeHidden(t)})`)}</div>
+    </div>
+    <div class="tribe-color"><span class="dest-label">צבע השבט:</span>${colorRow((DB.tribeMeta[t]||{}).color||"","setTribeColorCur")}</div>
+    <div class="section-title"><h2>דמויות בשבט</h2><span class="count">${chars.length}</span><div class="line"></div></div>
+    <div class="grid">${ chars.length? chars.map(card).join("") : `<div class="empty">אין דמויות בשבט הזה.</div>`}</div>
+    ${ stories.length? `
+      <div class="section-title"><h2>סיפורים בשבט</h2><span class="count">${stories.length}</span><div class="line"></div></div>
+      <div class="grid">${stories.map(storyCard).join("")}</div>` : ""}
+    ${attachPanel("tribe",t,(DB.tribeMeta[t]||{}).media,true)}`;
+}
+
+function viewChar(id){
+  const c=DB.chars.find(x=>x.id===id);
+  if(!c) return `<button class="back" onclick="go('discover')">← חזרה</button><div class="empty">הדמות לא נמצאה.</div>`;
+  const o=user(c.ownerId);
+  const mine = c.ownerId===DB.currentUser;
+  if(c.vis==="private" && !mine) return `<button class="back" onclick="go('discover')">← חזרה</button><div class="empty">הדמות הזו פרטית.</div>`;
+  const tags=[];
+  if(c.vis==="private") tags.push(`<span class="tag private">🔒 פרטי</span>`);
+  (c.tribes||[]).forEach(t=>tags.push(`<span class="tag tribe" onclick="event.stopPropagation();go('tribe','${esc(t)}')">${esc(t)}</span>`));
+  tags.push(`<span class="tag talk">${TALK[c.talk]}</span>`);
+  if(hasContribute(c)) tags.push(`<span class="tag collab">⤳ פתוח לתרומה</span>`);
+
+  // story entries as cards (each carries its own mode)
+  const vis = visibleEntries(c).slice().sort((a,b)=>b.ts-a.ts);
+  const entries = vis.map(e=>entryCard(c,e)).join("");
+
+  // story composer
+  let storyComposer;
+  if(mine){
+    const hasDraft = (DB.drafts[c.id]||"").trim();
+    storyComposer = `<div class="writecta">
+      <button class="btn" onclick="openWriter('${c.id}')">✍ כתוב סיפור חדש</button>
+      ${hasDraft?`<span class="hint">יש לך טיוטה שמורה. לחץ להמשיך.</span>`:""}
+    </div>`;
+  } else if(hasContribute(c)){
+    const hasDraft = (DB.drafts[c.id]||"").trim();
+    storyComposer = `<div class="writecta">
+      <button class="btn" onclick="openWriter('${c.id}')">⤳ הוסף סיפור</button>
+      <span class="hint">${esc(o.name)} פתח לתרומה.</span>
+      ${hasDraft?`<span class="hint">יש לך טיוטה שמורה.</span>`:""}
+    </div>`;
+  } else {
+    storyComposer = `<div class="locked">לא פתוח לתרומה. רק ${esc(o.name)} כותב כאן. אפשר לפתוח שיחה למטה.</div>`;
+  }
+
+  // conversation
+  const convo = c.convo.slice().sort((a,b)=>a.ts-b.ts).map(t=>{
+    const a=user(t.authorId);
+    return `<div class="entry ${t.authorId===DB.currentUser?'mine':''}">
+      <div class="ehead"><span class="dot" style="background:${color(a.id)}">${initials(a.name)}</span>
+        <b>${esc(a.name)}</b><span style="margin-inline-start:auto">${when(t.ts)}</span></div>
+      <div class="etext">${linkify(t.text)}</div>
+    </div>`;
+  }).join("");
+
+  let convoComposer;
+  if(c.talk===0 && !mine){
+    convoComposer = `<div class="locked">${esc(o.name)} לא פתח את הדמות הזו לשיחה כרגע.</div>`;
+  } else {
+    convoComposer = composerHTML("addConvo","הוסף לשיחה", mine?"ענה למי שכתב לך, או הוסף מחשבה.":"שאל, הצע, התווכח עם הכותב.");
+  }
+
+  // backlinks: stories elsewhere that mention this character (a tag, not an attachment)
+  const refs = mentionsOf(c);
+  const refsSection = refs.length ? `
+    <div class="section-title"><h2>מוזכרת בסיפורים</h2><span class="count">${refs.length}</span><div class="line"></div></div>
+    <div class="backlinks">${refs.map(r=> r.type==="loose"
+      ? `<a class="backlink" onclick="go('story','${r.s.id}')"><span class="bl-g">✍</span> ${esc(r.s.title||snippet(r.s.text))} <span class="bl-by">· ${esc(user(r.s.ownerId).name)}</span></a>`
+      : `<a class="backlink" onclick="gotoStory('${r.char.id}','${r.entry.id}')"><span class="bl-g">${r.char.glyph}</span> ${esc(r.entry.title||snippet(r.entry.text))} <span class="bl-by">· ${esc(r.char.name)}</span></a>`
+    ).join("")}</div>` : "";
+
+  return `<button class="back" onclick="go('${route.fromProfile?'profile':'discover'}')">← חזרה</button>
+    <div class="detail-head">
+      <div class="glyph"${glyphStyle(c.color)}>${c.glyph}</div>
+      <div style="flex:1">
+        <h1>${esc(c.name)}</h1>
+        <div class="by">מאת <b>${esc(o.name)}</b> &middot; ${visibleEntries(c).length} סיפורים &middot; עודכן ${when(lastTs(c)||c.entries[0]?.ts||Date.now())}</div>
+        <div class="tags">${tags.join("")}</div>
+      </div>
+      ${mine?`<div class="ent-actions">${privToggle(c.vis==="private",`setCharVis('${c.id}',${c.vis!=="private"})`)}<button class="btn ghost sm" onclick="openEditor('${c.id}')">עריכה</button></div>`:""}
+    </div>
+
+    <div class="essence-box">${linkify(c.essence)}</div>
+
+    <div class="section-title"><h2>הסיפורים</h2><span class="count">${visibleEntries(c).length}</span><div class="line"></div></div>
+    ${ vis.length ? `<div class="grid">${entries}</div>` : `<div class="hint" style="margin-bottom:10px">עוד לא נכתב אף סיפור.</div>`}
+    <div style="margin-top:18px">${storyComposer}</div>
+    ${refsSection}
+    ${attachPanel("char",c.id,c.media,mine)}
+
+    <div class="section-title convo"><h2>שיחה</h2><span class="count">${c.convo.length}</span><div class="line"></div></div>
+    <div class="convo">
+      ${convo||`<div class="hint" style="margin-bottom:10px">עוד אין שיחה. ${c.talk>0?'הכותב פתוח לזה.':''}</div>`}
+      ${convoComposer}
+    </div>`;
+}
+
+function composerHTML(fn,btn,placeholder){
+  return `<div class="composer">
+    <textarea id="cmp-${fn}" rows="3" placeholder="${placeholder}"></textarea>
+    <div class="row"><span class="hint">כותב בתור ${esc(me().name)}</span>
+      <button class="btn sm" onclick="${fn}('${route.id}')">${btn}</button></div>
+  </div>`;
+}
+
+function addConvo(id){
+  const ta=document.getElementById("cmp-addConvo"); const t=ta.value.trim(); if(!t) return;
+  const c=DB.chars.find(x=>x.id===id);
+  const msg={id:"t"+Date.now(),authorId:DB.currentUser,text:t,ts:Date.now()};
+  c.convo.push(msg);
+  save(); if(typeof sbSaveConvo==="function") sbSaveConvo(msg, id); render();
+}
+
+/* ---------- fullscreen writer ---------- */
+let W = {kind:"new", charId:null, entryId:null, looseId:null, attachTo:"", timer:null, serif:false, chromeTimer:null, mode:"mine", isOwner:true, tribes:[], media:[], color:""};
+const LOOSE_KEY="__loose__";
+
+function openWriterNew(){ openW({kind:"new", attachTo:""}); }                 // global write, standalone by default
+function openWriter(charId, entryId=null){                                    // from a character page
+  if(entryId) openW({kind:"editChar", charId, entryId});
+  else openW({kind:"new", attachTo:charId});
+}
+function openLoose(looseId){ openW({kind:"editLoose", looseId}); }            // edit a standalone story
+
+function openW(st){
+  W.kind=st.kind; W.charId=st.charId||null; W.entryId=st.entryId||null;
+  W.looseId=st.looseId||null; W.attachTo=st.attachTo||"";
+  const ta=document.getElementById("writer-text"), ti=document.getElementById("writer-title"), tp=document.getElementById("writer-preview");
+
+  if(W.kind==="editChar"){
+    const c=DB.chars.find(x=>x.id===W.charId); const e=c.entries.find(x=>x.id===W.entryId);
+    ta.value=e?e.text:""; ti.value=e&&e.title?e.title:""; tp.value=e&&e.preview?e.preview:""; W.mode=e?emode(e):"mine";
+    W.isOwner=(c.ownerId===DB.currentUser); W.tribes=[]; W.media=e&&e.media?e.media.slice():[]; W.color=e&&e.color?e.color:"";
+  } else if(W.kind==="editLoose"){
+    const s=DB.loose.find(x=>x.id===W.looseId);
+    ta.value=s?s.text:""; ti.value=s&&s.title?s.title:""; tp.value=s&&s.preview?s.preview:""; W.mode=s?(s.mode||"mine"):"mine";
+    W.isOwner=(s.ownerId===DB.currentUser); W.tribes=s&&s.tribes?s.tribes.slice():[]; W.media=s&&s.media?s.media.slice():[]; W.color=s&&s.color?s.color:"";
+  } else { // new
+    const k=W.attachTo||LOOSE_KEY;
+    ta.value=DB.drafts[k]||""; ti.value=DB.draftTitles[k]||""; tp.value="";
+    const targetChar = W.attachTo?DB.chars.find(x=>x.id===W.attachTo):null;
+    W.isOwner = targetChar ? (targetChar.ownerId===DB.currentUser) : true;
+    W.mode = W.isOwner ? "mine" : "single"; W.tribes=[]; W.media=[]; W.color="";
+  }
+  setSink({kind:"writer"});
+  drawDest();
+  drawWTribes();
+  drawWColor();
+  drawMediaStrip();
+  drawWriterHead();
+  drawWriterFoot();
+  updateCount();
+  setStat(ta.value.trim()?"":"דף ריק");
+  const el=document.getElementById("writer");
+  el.classList.add("open");
+  document.body.style.overflow="hidden";
+  writerOpen=true; applyWriterAmbient();
+  setTimeout(()=>{ ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length); },30);
+}
+function drawWriterHead(){
+  let glyph="✍", name="סיפור עצמאי";
+  const cid = W.kind==="editChar" ? W.charId : (W.kind==="new" ? W.attachTo : null);
+  if(cid){ const c=DB.chars.find(x=>x.id===cid); if(c){ glyph=c.glyph; name=c.name; } }
+  if(W.kind==="editLoose"){ glyph="✍"; name="סיפור עצמאי"; }
+  document.getElementById("writer-glyph").textContent=glyph;
+  document.getElementById("writer-name").textContent=name;
+}
+function drawDest(){
+  const row=document.getElementById("writer-dest-row"), sel=document.getElementById("writer-dest");
+  if(W.kind!=="new"){ row.style.display="none"; return; }
+  row.style.display="";
+  const mine=DB.chars.filter(c=>c.ownerId===DB.currentUser);
+  sel.innerHTML = `<option value="">ללא דמות · סיפור עצמאי</option>`+
+    mine.map(c=>`<option value="${c.id}" ${c.id===W.attachTo?"selected":""}>${esc(c.glyph)} ${esc(c.name)}</option>`).join("");
+}
+function onDestChange(){
+  const sel=document.getElementById("writer-dest");
+  const oldKey=W.attachTo||LOOSE_KEY;
+  // carry current buffer to the new destination
+  const v=document.getElementById("writer-text").value, t=document.getElementById("writer-title").value;
+  delete DB.drafts[oldKey]; delete DB.draftTitles[oldKey];
+  W.attachTo=sel.value;
+  const newKey=W.attachTo||LOOSE_KEY;
+  if(v.trim()||t.trim()){ DB.drafts[newKey]=v; DB.draftTitles[newKey]=t; }
+  const targetChar = W.attachTo?DB.chars.find(x=>x.id===W.attachTo):null;
+  W.isOwner = targetChar ? (targetChar.ownerId===DB.currentUser) : true;
+  if(!W.isOwner) W.mode="single"; else if(W.mode==="single") W.mode="mine";
+  save(); drawWriterHead(); drawWriterFoot(); drawWTribes();
+}
+function standaloneWrite(){ return (W.kind==="editLoose") || (W.kind==="new" && !W.attachTo); }
+function drawWTribes(){
+  const row=document.getElementById("writer-tribes-row");
+  if(!standaloneWrite() || !W.isOwner){ row.style.display="none"; return; }
+  row.style.display="";
+  const opts=[...new Set([...BASE_TRIBES, ...allTribes(), ...W.tribes])];
+  document.getElementById("writer-tribes").innerHTML = opts.map(t=>
+    `<button class="wtchip ${W.tribes.includes(t)?'sel':''}" onclick="toggleWTribe('${esc(t)}')">${esc(t)}</button>`).join("");
+}
+function toggleWTribe(t){
+  const i=W.tribes.indexOf(t);
+  if(i>=0) W.tribes.splice(i,1); else W.tribes.push(t);
+  if(W.kind==="editLoose"){
+    const s=DB.loose.find(x=>x.id===W.looseId);
+    if(s){ s.tribes=W.tribes.slice(); save(); setStat("נשמר ✓",true); }
+  }
+  drawWTribes();
+}
+function drawWColor(){
+  document.getElementById("writer-color").innerHTML=colorRow(W.color,"setWColor");
+}
+function setWColor(c){
+  W.color=c||"";
+  if(W.kind==="editChar"){ const ch=DB.chars.find(x=>x.id===W.charId),e=ch&&ch.entries.find(x=>x.id===W.entryId); if(e){ e.color=W.color||undefined; save(); setStat("נשמר ✓",true);} }
+  else if(W.kind==="editLoose"){ const s=DB.loose.find(x=>x.id===W.looseId); if(s){ s.color=W.color||undefined; save(); setStat("נשמר ✓",true);} }
+  drawWColor();
+}
+function modePicker(){
+  if(!W.isOwner) return `<span class="note">${EMODES.single.icon} תורם כטקסט יחיד</span>`;
+  return `<div class="modepick">`+
+    EMODE_ORDER.map(k=>`<button class="mchip ${W.mode===k?'sel':''}" title="${EMODES[k].hint}" onclick="setWMode('${k}')">${EMODES[k].icon} ${EMODES[k].label}</button>`).join("")+
+    `</div>`;
+}
+function setWMode(k){
+  W.mode=k;
+  if(W.kind==="editChar"){
+    const c=DB.chars.find(x=>x.id===W.charId); const e=c.entries.find(x=>x.id===W.entryId);
+    if(e){ e.mode=k; save(); setStat("נשמר ✓",true); }
+  } else if(W.kind==="editLoose"){
+    const s=DB.loose.find(x=>x.id===W.looseId);
+    if(s){ s.mode=k; save(); setStat("נשמר ✓",true); }
+  }
+  drawWriterFoot();
+}
+function drawWriterFoot(){
+  const foot=document.getElementById("writer-foot");
+  const editing = (W.kind==="editChar"||W.kind==="editLoose");
+  const del = editing ? `<button class="btn sm danger" onclick="deleteStory()">מחק</button>` : "";
+  const action = editing
+    ? `<button class="btn sm" onclick="closeWriter()">סיום</button>`
+    : `<button class="btn sm" onclick="commitEntry()">הוסף סיפור</button>`;
+  foot.innerHTML = `<div class="footinner">${modePicker()}<span class="spacer" style="margin-inline-start:auto"></span>${del}${action}</div>`;
+}
+function onWrite(){
+  const el=document.getElementById("writer");
+  el.classList.add("hidechrome");
+  clearTimeout(W.chromeTimer);
+  W.chromeTimer=setTimeout(()=>el.classList.remove("hidechrome"),1600);
+  const v=document.getElementById("writer-text").value;
+  updateCount("");
+  clearTimeout(W.timer);
+  setStat("כותב…");
+  W.timer=setTimeout(()=>autosave(v),700);
+}
+function autosave(v){
+  const title=document.getElementById("writer-title").value.trim();
+  const preview=document.getElementById("writer-preview").value.trim();
+  if(W.kind==="editChar"){
+    const c=DB.chars.find(x=>x.id===W.charId); const e=c.entries.find(x=>x.id===W.entryId);
+    if(e){ e.text=v; e.title=title||undefined; e.preview=preview||undefined; e.color=W.color||undefined; e.media=W.media.length?W.media.slice():undefined;
+      if(typeof sbSaveStory==="function") sbSaveStory(e, W.charId); }
+  } else if(W.kind==="editLoose"){
+    const s=DB.loose.find(x=>x.id===W.looseId);
+    if(s){ s.text=v; s.title=title||undefined; s.preview=preview||undefined; s.color=W.color||undefined; s.media=W.media.length?W.media.slice():undefined;
+      if(typeof sbSaveStory==="function") sbSaveStory(s, null); }
+  } else {
+    const k=W.attachTo||LOOSE_KEY;
+    DB.drafts[k]=v; DB.draftTitles[k]=title;
+  }
+  save();
+  setStat("נשמר ✓", true);
+}
+function updateCount(){
+  const v=document.getElementById("writer-text").value.trim();
+  const words=v?v.split(/\s+/).length:0;
+  document.getElementById("writer-stat").dataset.words=words;
+}
+function setStat(txt, saved=false){
+  const s=document.getElementById("writer-stat");
+  const w=s.dataset.words||"0";
+  s.innerHTML=`<span class="${saved?'saved':''}">${txt}</span> &middot; ${w} מילים`;
+}
+function commitEntry(){
+  const v=document.getElementById("writer-text").value.trim();
+  if(!v && !W.media.length){ closeWriter(); return; }
+  const title=document.getElementById("writer-title").value.trim();
+  const preview=document.getElementById("writer-preview").value.trim();
+  const media=W.media.length?W.media.slice():undefined;
+  const k=W.attachTo||LOOSE_KEY;
+  let savedStory, savedCharId=null;
+  if(W.attachTo){
+    const c=DB.chars.find(x=>x.id===W.attachTo);
+    savedStory={id:"e"+Date.now(),authorId:DB.currentUser,mode:W.mode,title:title||undefined,preview:preview||undefined,color:W.color||undefined,text:v,media,ts:Date.now()};
+    c.entries.push(savedStory); savedCharId=W.attachTo;
+  } else {
+    savedStory={id:"s"+Date.now(),ownerId:DB.currentUser,authorId:DB.currentUser,mode:W.mode,title:title||undefined,preview:preview||undefined,color:W.color||undefined,text:v,media,tribes:W.tribes.slice(),ts:Date.now()};
+    DB.loose.push(savedStory);
+  }
+  delete DB.drafts[k]; delete DB.draftTitles[k];
+  save(); if(typeof sbSaveStory==="function") sbSaveStory(savedStory, savedCharId); closeWriter();
+}
+function insertLink(kind){
+  const ta=document.getElementById("writer-text");
+  const open = kind==="char" ? "[[" : "((";
+  const close = kind==="char" ? "]]" : "))";
+  const s=ta.selectionStart, e=ta.selectionEnd, val=ta.value;
+  const sel=val.slice(s,e);
+  ta.value = val.slice(0,s)+open+sel+close+val.slice(e);
+  const cur = s+open.length+sel.length;
+  ta.focus(); ta.setSelectionRange(sel?cur+close.length:cur, sel?cur+close.length:cur);
+  onWrite();
+}
+/* @ mention autocomplete */
+let mentionStart=-1, mentionMatches=[];
+function checkMention(){
+  const ta=document.getElementById("writer-text");
+  const pos=ta.selectionStart;
+  const before=ta.value.slice(0,pos);
+  const mm=before.match(/@([^\s@\[\]]{0,30})$/);
+  if(!mm){ hideMentionPop(); return; }
+  mentionStart=pos-mm[0].length;
+  const q=mm[1].toLowerCase();
+  mentionMatches=DB.chars.filter(c=>canViewChar(c) && c.name.toLowerCase().includes(q)).slice(0,6);
+  const pop=document.getElementById("mention-pop");
+  if(!mentionMatches.length){ hideMentionPop(); return; }
+  pop.innerHTML = mentionMatches.map((c,i)=>
+    `<button class="mrow ${i===0?'first':''}" onmousedown="event.preventDefault();pickMention(${i})">
+       <span class="mg">${c.glyph}</span> ${esc(c.name)} <span class="mby">· ${esc(user(c.ownerId).name)}</span></button>`).join("");
+  pop.classList.add("open");
+}
+function hideMentionPop(){ mentionStart=-1; mentionMatches=[]; document.getElementById("mention-pop").classList.remove("open"); }
+function pickMention(i){
+  const c=mentionMatches[i]; if(!c) return;
+  const ta=document.getElementById("writer-text");
+  const pos=ta.selectionStart;
+  const token="@["+c.name+"] ";
+  ta.value = ta.value.slice(0,mentionStart)+token+ta.value.slice(pos);
+  const cur=mentionStart+token.length;
+  ta.focus(); ta.setSelectionRange(cur,cur);
+  hideMentionPop(); onWrite();
+}
+function deleteStory(){
+  if(W.kind!=="editChar" && W.kind!=="editLoose") return;
+  if(!confirm("למחוק את הסיפור? אי אפשר לשחזר.")) return;
+  const delId = W.kind==="editChar" ? W.entryId : W.looseId;
+  if(W.kind==="editChar"){ const c=DB.chars.find(x=>x.id===W.charId); if(c) c.entries=c.entries.filter(e=>e.id!==W.entryId); }
+  else { DB.loose=DB.loose.filter(s=>s.id!==W.looseId); }
+  clearTimeout(W.timer); save(); if(typeof sbDelStory==="function") sbDelStory(delId);
+  document.getElementById("writer").classList.remove("open","hidechrome");
+  document.body.style.overflow=""; writerOpen=false; updateFireSound(); hideMentionPop(); render();
+}
+function toggleSerif(){ W.serif=!W.serif; document.getElementById("writer").classList.toggle("serif",W.serif); }
+
+/* ---- media: images, drawings, recordings — always a supplement to writing ---- */
+let MEDIASINK={kind:"writer"};   // {kind:"writer"} | {kind:"char",id} | {kind:"tribe",id}
+function setSink(s){ MEDIASINK=s; }
+function isAudio(src){ return src && src.indexOf("data:audio")===0; }
+function sinkArray(){
+  if(MEDIASINK.kind==="char"){ const c=DB.chars.find(x=>x.id===MEDIASINK.id); if(c){ if(!c.media)c.media=[]; return c.media; } }
+  if(MEDIASINK.kind==="tribe"){ if(!DB.tribeMeta[MEDIASINK.id]) DB.tribeMeta[MEDIASINK.id]={media:[]}; if(!DB.tribeMeta[MEDIASINK.id].media) DB.tribeMeta[MEDIASINK.id].media=[]; return DB.tribeMeta[MEDIASINK.id].media; }
+  return W.media;
+}
+function pushMedia(src){
+  if(MEDIASINK.kind==="writer"){ W.media.push(src); drawMediaStrip(); persistMedia(); }
+  else { sinkArray().push(src); save(); render(); }
+}
+function renderMediaItem(src){
+  if(isAudio(src)) return `<audio controls src="${src}" onclick="event.stopPropagation()"></audio>`;
+  return `<img src="${src}" alt="" onclick="event.stopPropagation();openLightbox(this.src)">`;
+}
+
+/* attachments panel for char / tribe (owner/user can add; writing stays the core) */
+function attachPanel(kind,id,list,canAdd){
+  const items=(list||[]).map((src,i)=>
+    `<div class="att-item">${isAudio(src)?`<div class="att-audio">🎙<audio controls src="${src}"></audio></div>`:`<img src="${src}" onclick="openLightbox(this.src)">`}
+      ${canAdd?`<button class="mdel" onclick="removeAttachment('${kind}','${esc(id)}',${i})">✕</button>`:""}</div>`).join("");
+  const adder = canAdd ? `<div class="att-add">
+      <button class="btn sm ghost" onclick="sinkAttach('${kind}','${esc(id)}');document.getElementById('img-input').click()">🖼 תמונה</button>
+      <button class="btn sm ghost" onclick="sinkAttach('${kind}','${esc(id)}');openDraw()">✎ ציור</button>
+      <button class="btn sm ghost" onclick="sinkAttach('${kind}','${esc(id)}');openRec()">🎙 הקלטה</button>
+    </div>` : "";
+  if(!items && !adder) return "";
+  return `<div class="section-title"><h2>תוספות</h2><span class="count">${(list||[]).length}</span><div class="line"></div></div>
+    <p class="att-note">תמונות, ציורים והקלטות. תוספת לכתיבה, לא במקומה.</p>
+    <div class="att-grid">${items}</div>${adder}`;
+}
+function sinkAttach(kind,id){ setSink({kind,id}); }
+function removeAttachment(kind,id,i){
+  if(kind==="char"){ const c=DB.chars.find(x=>x.id===id); if(c&&c.media){ c.media.splice(i,1); } }
+  else if(kind==="tribe"){ if(DB.tribeMeta[id]&&DB.tribeMeta[id].media){ DB.tribeMeta[id].media.splice(i,1); } }
+  save(); render();
+}
+
+function drawMediaStrip(){
+  const strip=document.getElementById("media-strip");
+  if(!W.media.length){ strip.innerHTML=""; strip.style.display="none"; return; }
+  strip.style.display="flex";
+  strip.innerHTML=W.media.map((src,i)=>
+    `<div class="mthumb">${isAudio(src)?`<div class="mthumb-aud">🎙</div>`:`<img src="${src}" alt="">`}<button class="mdel" onclick="removeMedia(${i})" title="הסר">✕</button></div>`).join("");
+}
+function removeMedia(i){ W.media.splice(i,1); drawMediaStrip(); persistMedia(); }
+function persistMedia(){
+  if(W.kind==="editChar"){ const c=DB.chars.find(x=>x.id===W.charId),e=c.entries.find(x=>x.id===W.entryId); if(e){ e.media=W.media.slice(); save(); setStat("נשמר ✓",true);} }
+  else if(W.kind==="editLoose"){ const s=DB.loose.find(x=>x.id===W.looseId); if(s){ s.media=W.media.slice(); save(); setStat("נשמר ✓",true);} }
+}
+function addImage(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const fr=new FileReader();
+  fr.onload=()=>{ const img=new Image(); img.onload=()=>{
+    let w=img.width,h=img.height,max=1100;
+    if(w>max||h>max){ const r=Math.min(max/w,max/h); w=Math.round(w*r); h=Math.round(h*r); }
+    const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+    cv.getContext("2d").drawImage(img,0,0,w,h);
+    pushMedia(cv.toDataURL("image/jpeg",0.72));
+  }; img.src=fr.result; };
+  fr.readAsDataURL(f); input.value="";
+}
+
+/* ---- drawing / handwriting canvas ---- */
+let DRAW={ctx:null,drawing:false,color:"#2a2430",size:3,paper:"#f5f1e8"};
+const DRAW_COLORS=["#2a2430","#3a6ea8","#b5453f","#3f8f5a","#9a7bd0"];
+const DRAW_SIZES=[2,4,7];
+function openDraw(){
+  const cv=document.getElementById("draw-canvas"); DRAW.ctx=cv.getContext("2d");
+  clearDraw();
+  document.getElementById("draw-swatches").innerHTML=DRAW_COLORS.map(c=>
+    `<button class="sw ${c===DRAW.color?'sel':''}" style="background:${c}" onclick="setDrawColor('${c}',this)"></button>`).join("");
+  document.getElementById("draw-sizes").innerHTML=DRAW_SIZES.map(s=>
+    `<button class="szb ${s===DRAW.size?'sel':''}" onclick="setDrawSize(${s},this)"><span style="width:${s*2}px;height:${s*2}px"></span></button>`).join("");
+  bindCanvas(cv);
+  document.getElementById("draw-scrim").classList.add("open");
+}
+function clearDraw(){ const cv=document.getElementById("draw-canvas"); DRAW.ctx.fillStyle=DRAW.paper; DRAW.ctx.fillRect(0,0,cv.width,cv.height); }
+function setDrawColor(c,el){ DRAW.color=c; [...el.parentNode.children].forEach(b=>b.classList.remove("sel")); el.classList.add("sel"); }
+function setDrawSize(s,el){ DRAW.size=s; [...el.parentNode.children].forEach(b=>b.classList.remove("sel")); el.classList.add("sel"); }
+function cvPos(cv,ev){ const r=cv.getBoundingClientRect(); const t=ev.touches?ev.touches[0]:ev; return {x:(t.clientX-r.left)*(cv.width/r.width), y:(t.clientY-r.top)*(cv.height/r.height)}; }
+function bindCanvas(cv){
+  if(cv._bound) return; cv._bound=true;
+  const start=ev=>{ ev.preventDefault(); DRAW.drawing=true; const p=cvPos(cv,ev); DRAW.ctx.beginPath(); DRAW.ctx.moveTo(p.x,p.y); };
+  const move=ev=>{ if(!DRAW.drawing)return; ev.preventDefault(); const p=cvPos(cv,ev);
+    DRAW.ctx.lineTo(p.x,p.y); DRAW.ctx.strokeStyle=DRAW.color; DRAW.ctx.lineWidth=DRAW.size; DRAW.ctx.lineCap="round"; DRAW.ctx.lineJoin="round"; DRAW.ctx.stroke(); };
+  const end=()=>{ DRAW.drawing=false; };
+  cv.addEventListener("mousedown",start); cv.addEventListener("mousemove",move); window.addEventListener("mouseup",end);
+  cv.addEventListener("touchstart",start,{passive:false}); cv.addEventListener("touchmove",move,{passive:false}); cv.addEventListener("touchend",end);
+}
+function closeDraw(){ document.getElementById("draw-scrim").classList.remove("open"); }
+function saveDraw(){
+  const cv=document.getElementById("draw-canvas");
+  pushMedia(cv.toDataURL("image/jpeg",0.8)); closeDraw();
+}
+
+/* audio recording */
+let REC={mr:null,chunks:[],stream:null,timer:null,sec:0,data:null};
+function openRec(){
+  REC.data=null; REC.sec=0; REC.chunks=[];
+  document.getElementById("rec-time").textContent="00:00";
+  const pv=document.getElementById("rec-preview"); pv.style.display="none"; pv.src="";
+  document.getElementById("rec-save").disabled=true;
+  const b=document.getElementById("rec-btn"); b.textContent="●"; b.classList.remove("recording");
+  document.getElementById("rec-scrim").classList.add("open");
+}
+async function toggleRec(){
+  const b=document.getElementById("rec-btn");
+  if(REC.mr && REC.mr.state==="recording"){ REC.mr.stop(); return; }
+  try{
+    REC.stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){ alert("לא ניתן לגשת למיקרופון. בקובץ מקומי הדפדפן עשוי לחסום הקלטה. בגרסה המתארחת זה יעבוד."); return; }
+  REC.chunks=[]; REC.mr=new MediaRecorder(REC.stream);
+  REC.mr.ondataavailable=e=>{ if(e.data.size>0) REC.chunks.push(e.data); };
+  REC.mr.onstop=()=>{
+    clearInterval(REC.timer);
+    const blob=new Blob(REC.chunks,{type:REC.mr.mimeType||"audio/webm"});
+    const fr=new FileReader();
+    fr.onload=()=>{ REC.data=fr.result; const pv=document.getElementById("rec-preview"); pv.src=REC.data; pv.style.display=""; document.getElementById("rec-save").disabled=false; };
+    fr.readAsDataURL(blob);
+    REC.stream.getTracks().forEach(t=>t.stop());
+    b.textContent="●"; b.classList.remove("recording");
+  };
+  REC.mr.start(); REC.sec=0;
+  b.textContent="■"; b.classList.add("recording");
+  REC.timer=setInterval(()=>{ REC.sec++; const m=String(Math.floor(REC.sec/60)).padStart(2,"0"),s=String(REC.sec%60).padStart(2,"0"); document.getElementById("rec-time").textContent=m+":"+s; },1000);
+}
+function closeRec(){
+  if(REC.mr && REC.mr.state==="recording"){ try{REC.mr.stop();}catch(e){} }
+  if(REC.stream){ REC.stream.getTracks().forEach(t=>t.stop()); }
+  clearInterval(REC.timer);
+  document.getElementById("rec-scrim").classList.remove("open");
+}
+function saveRec(){
+  if(REC.data) pushMedia(REC.data);
+  document.getElementById("rec-scrim").classList.remove("open");
+}
+
+/* image lightbox */
+function openLightbox(src){ document.getElementById("lightbox-img").src=src; document.getElementById("lightbox").classList.add("open"); }
+function closeLightbox(){ document.getElementById("lightbox").classList.remove("open"); }
+function mediaGallery(media){
+  if(!media||!media.length) return "";
+  return `<div class="gallery">${media.map(s=>renderMediaItem(s)).join("")}</div>`;
+}
+function closeWriter(){
+  clearTimeout(W.timer);
+  const v=document.getElementById("writer-text").value;
+  autosave(v);
+  const el=document.getElementById("writer");
+  el.classList.remove("open","hidechrome");
+  document.body.style.overflow="";
+  writerOpen=false; updateFireSound();
+  render();
+}
+document.addEventListener("keydown",e=>{
+  const open=document.getElementById("writer").classList.contains("open");
+  const popOpen=document.getElementById("mention-pop").classList.contains("open");
+  if(popOpen){
+    if(e.key==="Enter"||e.key==="Tab"){ e.preventDefault(); pickMention(0); return; }
+    if(e.key==="Escape"){ e.preventDefault(); hideMentionPop(); return; }
+  }
+  if(e.key==="Escape" && open) closeWriter();
+});
+document.getElementById("writer").addEventListener("mousemove",()=>{
+  document.getElementById("writer").classList.remove("hidechrome");
+});
+
+/* ---------- editor ---------- */
+let editing=null, pickGlyph="✦", pickTalk=1, pickTribes=[], pickVis="private", pickColor="";
+function setPickColor(c){ pickColor=c||""; document.getElementById("char-colorpick").innerHTML=colorRow(pickColor,"setPickColor"); }
+function openEditor(id=null){
+  editing=id;
+  const c = id? DB.chars.find(x=>x.id===id):null;
+  document.getElementById("m-title").textContent = c?"עריכת דמות":"דמות חדשה";
+  document.getElementById("f-name").value = c?c.name:"";
+  document.getElementById("f-essence").value = c?c.essence:"";
+  document.getElementById("f-preview").value = c&&c.preview?c.preview:"";
+  pickColor = c&&c.color?c.color:"";
+  document.getElementById("char-colorpick").innerHTML=colorRow(pickColor,"setPickColor");
+  pickGlyph = c?c.glyph:"✦"; pickTalk = c?c.talk:1;
+  pickTribes = c?(c.tribes||[]).slice():[];
+  pickVis = c?(c.vis||"private") : "private";
+  // glyphs
+  const gp=document.getElementById("glyphpick");
+  gp.innerHTML = GLYPHS_SAFE.map(g=>`<button class="${g===pickGlyph?'sel':''}" onclick="selGlyph('${g}',this)">${g}</button>`).join("");
+  drawTribes();
+  drawVis();
+  drawSeg("seg-talk",pickTalk);
+  document.getElementById("m-delete").style.display = editing ? "" : "none";
+  document.getElementById("scrim").classList.add("open");
+}
+function drawVis(){
+  const seg=document.getElementById("seg-vis");
+  [...seg.children].forEach(b=>{
+    b.classList.toggle("sel", b.dataset.v===pickVis);
+    b.onclick=()=>{ pickVis=b.dataset.v; drawVis(); };
+  });
+  const pub = pickVis==="public";
+  document.getElementById("wrap-talk").style.display = pub?"":"none";
+}
+function drawTribes(){
+  const opts=[...new Set([...BASE_TRIBES, ...allTribes(), ...pickTribes])];
+  document.getElementById("tribepick").innerHTML = opts.map(t=>
+    `<button type="button" class="${pickTribes.includes(t)?'sel':''}" onclick="toggleTribe('${esc(t)}')">${esc(t)}</button>`).join("");
+}
+function toggleTribe(t){
+  const i=pickTribes.indexOf(t);
+  if(i>=0) pickTribes.splice(i,1); else pickTribes.push(t);
+  drawTribes();
+}
+function addTribe(){
+  const inp=document.getElementById("f-newtribe"); const t=inp.value.trim();
+  if(!t) return;
+  if(!pickTribes.includes(t)) pickTribes.push(t);
+  inp.value=""; drawTribes();
+}
+function closeEditor(){ document.getElementById("scrim").classList.remove("open"); }
+function selGlyph(g,el){ pickGlyph=g; [...el.parentNode.children].forEach(b=>b.classList.remove("sel")); el.classList.add("sel"); }
+function drawSeg(segId,val){
+  const seg=document.getElementById(segId);
+  [...seg.children].forEach(b=>{
+    b.classList.toggle("sel", +b.dataset.v===val);
+    b.onclick=()=>{ pickTalk=+b.dataset.v; drawSeg(segId, +b.dataset.v); };
+  });
+}
+function saveCharacter(){
+  const name=document.getElementById("f-name").value.trim();
+  const essence=document.getElementById("f-essence").value.trim();
+  const preview=document.getElementById("f-preview").value.trim();
+  if(!name){ document.getElementById("f-name").focus(); return; }
+  const talk = pickVis==="public"?pickTalk:0;
+  let savedChar;
+  if(editing){
+    const c=DB.chars.find(x=>x.id===editing);
+    c.name=name; c.essence=essence; c.preview=preview||undefined; c.glyph=pickGlyph; c.color=pickColor||undefined; c.vis=pickVis; c.talk=talk; c.tribes=pickTribes.slice();
+    savedChar=c;
+  } else {
+    savedChar={id:"c"+Date.now(),ownerId:DB.currentUser,glyph:pickGlyph,color:pickColor||undefined,name,essence,preview:preview||undefined,
+      tribes:pickTribes.slice(),vis:pickVis,talk:talk,entries:[],convo:[]};
+    DB.chars.push(savedChar);
+  }
+  save(); if(typeof sbSaveChar==="function") sbSaveChar(savedChar); closeEditor(); go("profile");
+}
+function deleteCharacter(){
+  if(!editing) return;
+  const c=DB.chars.find(x=>x.id===editing);
+  if(!c) return;
+  if(!confirm('למחוק את הדמות "'+c.name+'" וכל הסיפורים שבתוכה? אי אפשר לשחזר.')) return;
+  const delCharId=editing;
+  DB.chars=DB.chars.filter(x=>x.id!==editing);
+  delete DB.drafts[editing]; delete DB.draftTitles[editing];
+  save(); if(typeof sbDelChar==="function") sbDelChar(delCharId); closeEditor(); go("profile");
+}
+
+/* ---------- init ---------- */
+/* האתחול מנוהל ע"י מודול ההזדהות למטה (initApp) */
+</script>
+
+<!-- ===== הזדהות + חיבור לסופאבייס (שלב 1) ===== -->
+<script>
+const SB_URL = "https://jcohriccpuiuokgxtsyv.supabase.co";
+const SB_KEY = "sb_publishable_oYgnWSU7uBMFp0QAnwfwDw_jkbDmBeS";
+let sb = null;
+try { sb = window.supabase.createClient(SB_URL, SB_KEY); }
+catch(e){ console.error("Supabase init failed", e); }
+
+let AUTH_MODE = "signup"; // "signup" | "login"
+
+function authToggleMode(){
+  AUTH_MODE = AUTH_MODE === "signup" ? "login" : "signup";
+  document.getElementById("auth-submit").textContent   = AUTH_MODE==="signup" ? "הרשמה" : "כניסה";
+  document.getElementById("auth-sub").textContent      = AUTH_MODE==="signup" ? "הירשם כדי להתחיל לכתוב" : "היכנס לחשבון שלך";
+  document.getElementById("auth-toggle-text").textContent = AUTH_MODE==="signup" ? "כבר יש לך חשבון?" : "אין לך חשבון?";
+  document.getElementById("auth-err").textContent = "";
+}
+function showAuthGate(){ const g=document.getElementById("auth-gate"); if(g) g.style.display="flex"; }
+function hideAuthGate(){ const g=document.getElementById("auth-gate"); if(g) g.style.display="none"; }
+
+function translateAuthErr(m){
+  if(/already registered|already been registered/i.test(m)) return "האימייל כבר רשום — נסה להיכנס.";
+  if(/Invalid login/i.test(m)) return "אימייל או סיסמה שגויים.";
+  if(/at least 6|password should be/i.test(m)) return "הסיסמה צריכה לפחות 6 תווים.";
+  if(/valid email/i.test(m)) return "אימייל לא תקין.";
+  return m;
+}
+
+async function authSubmit(){
+  if(!sb){ document.getElementById("auth-err").textContent="החיבור לשרת נכשל — רענן את הדף."; return; }
+  const email = document.getElementById("auth-email").value.trim();
+  const pass  = document.getElementById("auth-pass").value;
+  const err   = document.getElementById("auth-err");
+  err.textContent = "";
+  if(!email || !pass){ err.textContent = "מלא אימייל וסיסמה"; return; }
+  const btn = document.getElementById("auth-submit"); const ot = btn.textContent;
+  btn.disabled = true; btn.textContent = "רגע…";
+  try{
+    const res = AUTH_MODE === "signup"
+      ? await sb.auth.signUp({ email, password: pass })
+      : await sb.auth.signInWithPassword({ email, password: pass });
+    if(res.error){ err.textContent = translateAuthErr(res.error.message); btn.disabled=false; btn.textContent=ot; return; }
+    if(!res.data.session){ err.textContent = "נשלח אליך אימייל אימות — אשר אותו ואז היכנס."; AUTH_MODE="login"; btn.disabled=false; btn.textContent="כניסה"; return; }
+    await onAuthed(res.data.session);
+  }catch(e){ err.textContent = "שגיאה: " + e.message; btn.disabled=false; btn.textContent=ot; }
+}
+
+async function ensureProfile(authUser){
+  const q = await sb.from("profiles").select("*").eq("account_id", authUser.id).is("parent_id", null).limit(1);
+  if(q.error) throw q.error;
+  if(q.data && q.data.length) return q.data[0];
+  const name = (authUser.email || "כותב").split("@")[0];
+  const ins = await sb.from("profiles").insert({ account_id: authUser.id, name }).select().single();
+  if(ins.error) throw ins.error;
+  return ins.data;
+}
+
+async function onAuthed(session){
+  let p;
+  try { p = await ensureProfile(session.user); }
+  catch(e){ document.getElementById("auth-err").textContent = "שגיאת פרופיל: " + e.message; return; }
+  try { await hydrate(); } catch(e){ console.error("hydrate failed", e); }
+  DB.currentUser = p.id;
+  save();
+  hideAuthGate();
+  injectLogout(session.user.email);
+  applyTheme(); renderWho(); render();
+}
+
+/* ===== שכבת נתונים: טעינה מהמסד (read) ===== */
+async function hydrate(){
+  const [pf, ch, st, cv, tm] = await Promise.all([
+    sb.from("profiles").select("*"),
+    sb.from("characters").select("*"),
+    sb.from("stories").select("*"),
+    sb.from("convo").select("*"),
+    sb.from("tribe_meta").select("*")
+  ]);
+  for(const r of [pf,ch,st,cv,tm]) if(r.error) throw r.error;
+
+  DB.users = pf.data.map(p=>({
+    id:p.id, name:p.name, bio:p.bio||"", color:p.color||undefined,
+    theme:p.theme||undefined, parentId:p.parent_id||undefined,
+    privTribes:p.priv_tribes||[], settings:p.settings||undefined
+  }));
+  DB.chars = ch.data.map(c=>({
+    id:c.id, ownerId:c.owner_id, glyph:c.glyph, name:c.name, essence:c.essence,
+    preview:c.preview||undefined, color:c.color||undefined, tribes:c.tribes||[],
+    vis:c.vis, talk:c.talk||0,
+    media:(c.media&&c.media.length)?c.media:undefined, entries:[], convo:[]
+  }));
+  const cmap = {}; DB.chars.forEach(c=>cmap[c.id]=c);
+  DB.loose = [];
+  st.data.forEach(s=>{
+    const base = {
+      id:s.id, authorId:s.author_id, mode:s.mode,
+      title:s.title||undefined, preview:s.preview||undefined, color:s.color||undefined,
+      text:s.body||"", media:(s.media&&s.media.length)?s.media:undefined, ts:Number(s.ts)||0
+    };
+    if(s.character_id && cmap[s.character_id]) cmap[s.character_id].entries.push(base);
+    else DB.loose.push(Object.assign(base, { ownerId:s.author_id, tribes:s.tribes||[] }));
+  });
+  cv.data.forEach(t=>{ const c=cmap[t.character_id]; if(c) c.convo.push({id:t.id,authorId:t.author_id,text:t.text,ts:Number(t.ts)||0}); });
+  DB.chars.forEach(c=>{ c.entries.sort((a,b)=>a.ts-b.ts); c.convo.sort((a,b)=>a.ts-b.ts); });
+  DB.loose.sort((a,b)=>b.ts-a.ts);
+  DB.tribeMeta = {};
+  tm.data.forEach(t=>{ DB.tribeMeta[t.name]={ color:t.color||undefined, media:(t.media&&t.media.length)?t.media:undefined }; });
+}
+
+/* ===== שכבת נתונים: כתיבה למסד (write-through) ===== */
+async function sbSaveChar(c){
+  if(!sb) return;
+  const r = await sb.from("characters").upsert({
+    id:c.id, owner_id:c.ownerId, glyph:c.glyph||null, name:c.name, essence:c.essence||null,
+    preview:c.preview||null, color:c.color||null, tribes:c.tribes||[], vis:c.vis||"public",
+    talk:c.talk||0, media:c.media||[], ts:Date.now()
+  });
+  if(r.error) console.error("sbSaveChar", r.error);
+}
+async function sbSaveStory(e, characterId){
+  if(!sb) return;
+  const r = await sb.from("stories").upsert({
+    id:e.id, author_id:e.authorId, character_id:characterId||null, mode:e.mode||"single",
+    title:e.title||null, preview:e.preview||null, color:e.color||null, body:e.text||"",
+    tribes:e.tribes||[], media:e.media||[], ts:e.ts||Date.now()
+  });
+  if(r.error) console.error("sbSaveStory", r.error);
+}
+async function sbSaveConvo(t, characterId){
+  if(!sb) return;
+  const r = await sb.from("convo").upsert({ id:t.id, character_id:characterId, author_id:t.authorId, text:t.text, ts:t.ts||Date.now() });
+  if(r.error) console.error("sbSaveConvo", r.error);
+}
+async function sbDelChar(id){ if(sb){ const r=await sb.from("characters").delete().eq("id",id); if(r.error) console.error("sbDelChar",r.error); } }
+async function sbDelStory(id){ if(sb){ const r=await sb.from("stories").delete().eq("id",id); if(r.error) console.error("sbDelStory",r.error); } }
+
+function injectLogout(email){
+  if(document.getElementById("logout-btn")) return;
+  const who = document.querySelector(".who");
+  if(!who) return;
+  const b = document.createElement("button");
+  b.id = "logout-btn"; b.className = "wbtn theme-btn"; b.title = "יציאה (" + email + ")"; b.textContent = "⎋";
+  b.onclick = authLogout;
+  who.appendChild(b);
+}
+async function authLogout(){ try{ await sb.auth.signOut(); }catch(e){} location.reload(); }
+
+async function initApp(){
+  try{
+    const { data } = await sb.auth.getSession();
+    if(data && data.session){ await onAuthed(data.session); return; }
+  }catch(e){ console.error(e); }
+  render();          // רקע מאחורי שער ההזדהות
+  showAuthGate();
+}
+initApp();
+</script>
+</body>
+</html>
